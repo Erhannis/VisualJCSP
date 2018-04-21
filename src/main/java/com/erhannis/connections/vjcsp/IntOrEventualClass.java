@@ -5,6 +5,7 @@
  */
 package com.erhannis.connections.vjcsp;
 
+import java.awt.Color;
 import java.util.Objects;
 
 /**
@@ -19,23 +20,27 @@ public class IntOrEventualClass {
   protected final Type type;
   protected final Class clazz;
   protected final String clazzString;
+  protected final Color color; //TODO Would ` = new Color(0xFF000000 | this.hashCode())` work, here?
   
   public IntOrEventualClass() {
     this.type = Type.INT;
     this.clazz = null;
     this.clazzString = null;
+    this.color = new Color(0xFF000000 | this.hashCode());
   }
   
   public IntOrEventualClass(Class clazz) {
     this.type = Type.CLASS;
     this.clazz = clazz;
     this.clazzString = null;
+    this.color = new Color(0xFF000000 | this.hashCode());
   }
 
   public IntOrEventualClass(String clazzString) {
     this.type = Type.CLASS_STRING;
     this.clazz = null;
     this.clazzString = clazzString;
+    this.color = new Color(0xFF000000 | this.hashCode());
   }
 
   @Override
@@ -55,5 +60,10 @@ public class IntOrEventualClass {
   @Override
   public int hashCode() {
     return Objects.hash(type, clazz, clazzString);
+  }
+  
+  //TODO This is kindof related to Drawable, rather than an inherent part of the class....
+  public Color getColor() {
+    return color;
   }
 }
