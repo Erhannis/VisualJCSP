@@ -20,6 +20,10 @@ public abstract class PlainTerminal extends VJCSPTerminal implements Drawable {
   protected PlainTerminal(IntOrEventualClass type) {
     this.type = type;
   }
+  
+  public IntOrEventualClass getType() {
+    return type;
+  }
 
   @Override
   public void draw(Graphics2D g) {

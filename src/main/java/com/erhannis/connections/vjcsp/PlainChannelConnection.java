@@ -8,6 +8,7 @@ package com.erhannis.connections.vjcsp;
 import com.erhannis.connections.base.Connection;
 import com.erhannis.connections.base.Drawable;
 import com.erhannis.connections.base.Terminal;
+import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
@@ -44,12 +45,48 @@ public class PlainChannelConnection implements Connection, Drawable {
 
   @Override
   public void draw(Graphics2D g) {
-    asdf;
+    Color prevColor = g.getColor();
+   
+    //TODO Make this kind of thing default for Drawable?
+    draw0(g);
+    
+    g.setColor(prevColor);
+  }
+
+  protected void draw0(Graphics2D g) {
+    Point2D.Double center = getCenter();
+    for (PlainOutputTerminal pot : outputTerminals) {
+      g.setColor(pot.getType().getColor().brighter()); // Tweak?  Other way round?
+      g.draw(getConnectionPath(pot.getCenter(), center));
+    }
+    for (PlainInputTerminal pit : inputTerminals) {
+      g.setColor(pit.getType().getColor());
+      g.draw(getConnectionPath(pit.getCenter(), center));
+    }
+    //TODO Draw buffer, etc.
+    g.draw(getConnectionPath(TOP, TOP, TOP, TOP));
   }
 
   @Override
   public Point2D.Double getCenter() {
-    asdf;
+    Point2D.Double result = new Point2D.Double();
+    for (PlainInputTerminal pit : inputTerminals) {
+      Point2D.Double pt = pit.getCenter();
+      result.x += pt.x;
+      result.y += pt.y;
+    }
+    for (PlainOutputTerminal pot : outputTerminals) {
+      Point2D.Double pt = pot.getCenter();
+      result.x += pt.x;
+      result.y += pt.y;
+    }
+    result.x /= (inputTerminals.size() + outputTerminals.size());
+    result.y /= (inputTerminals.size() + outputTerminals.size());
+    return result;
+  }
+
+  protected Path2D getConnectionPath(Point2D.Double a, Point2D.Double b) {
+    return getConnectionPath(a.x, a.y, b.x, b.y);
   }
   
   protected Path2D getConnectionPath(double ax, double ay, double bx, double by) {
