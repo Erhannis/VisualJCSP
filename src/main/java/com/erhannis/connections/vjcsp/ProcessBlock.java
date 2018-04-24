@@ -8,6 +8,7 @@ package com.erhannis.connections.vjcsp;
 import com.erhannis.connections.base.Block;
 import com.erhannis.connections.base.Drawable;
 import com.erhannis.connections.base.Terminal;
+import com.erhannis.connections.base.TransformChain;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
@@ -19,18 +20,22 @@ import java.util.HashSet;
  */
 public abstract class ProcessBlock implements Block, Drawable {
   protected final HashSet<VJCSPTerminal> terminals = new HashSet<>();
+
+  protected TransformChain transformChain;
   
   @Override
   public void draw(Graphics2D g) {
     Color prevColor = g.getColor();
+    AffineTransform prevTransform = g.getTransform();
    
     //TODO Make this kind of thing default for Drawable?
     draw0(g);
-    
+
     //TODO Make holes for the terminals?
     drawTerminals(g);
     
     g.setColor(prevColor);
+    g.setTransform(prevTransform);
   }
   
   protected void drawTerminals(Graphics2D g) {
@@ -75,4 +80,9 @@ public abstract class ProcessBlock implements Block, Drawable {
   }
   
   protected abstract void draw0(Graphics2D g);
+  
+  @Override
+  public TransformChain getTransformChain() {
+    return transformChain;
+  }
 }

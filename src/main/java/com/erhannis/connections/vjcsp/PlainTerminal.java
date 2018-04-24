@@ -6,8 +6,10 @@
 package com.erhannis.connections.vjcsp;
 
 import com.erhannis.connections.base.Drawable;
+import com.erhannis.connections.base.TransformChain;
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 
 /**
@@ -16,6 +18,8 @@ import java.awt.geom.Point2D;
  */
 public abstract class PlainTerminal extends VJCSPTerminal implements Drawable {
   protected final IntOrEventualClass type;
+  
+  protected TransformChain transformChain;
   
   protected PlainTerminal(IntOrEventualClass type) {
     this.type = type;
@@ -28,12 +32,13 @@ public abstract class PlainTerminal extends VJCSPTerminal implements Drawable {
   @Override
   public void draw(Graphics2D g) {
     Color prevColor = g.getColor();
-    g.setColor(type.getColor());
+    AffineTransform prevTransform = g.getTransform();
    
     //TODO Make this kind of thing default for Drawable?
     draw0(g);
     
     g.setColor(prevColor);
+    g.setTransform(prevTransform);
   }
   
   protected abstract void draw0(Graphics2D g);
@@ -42,5 +47,10 @@ public abstract class PlainTerminal extends VJCSPTerminal implements Drawable {
   public Point2D.Double getCenter() {
     //TODO Should be a static thing?
     return new Point2D.Double(0, 0);
+  }
+
+  @Override
+  public TransformChain getTransformChain() {
+    return transformChain;
   }
 }

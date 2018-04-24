@@ -8,10 +8,13 @@ package com.erhannis.connections.vjcsp;
 import com.erhannis.connections.base.Connection;
 import com.erhannis.connections.base.Drawable;
 import com.erhannis.connections.base.Terminal;
+import com.erhannis.connections.base.TransformChain;
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
+import java.util.HashMap;
 import java.util.HashSet;
 
 /**
@@ -26,6 +29,9 @@ public class PlainChannelConnection implements Connection, Drawable {
   
   protected final HashSet<PlainOutputTerminal> outputTerminals = new HashSet<>();
   protected final HashSet<PlainInputTerminal> inputTerminals = new HashSet<>();
+  
+  //TODO Beware, because of Connection's dependence on world coords of other things, it may react poorly to having its transform changed or parented.
+  protected TransformChain transformChain = new TransformChain(new AffineTransform(), null);
 
   public PlainChannelConnection(PlainOutputTerminal output, PlainInputTerminal input) {
     //TODO There's something missing somewhere, about adding the connection to the terminals themselves.
@@ -46,22 +52,28 @@ public class PlainChannelConnection implements Connection, Drawable {
   @Override
   public void draw(Graphics2D g) {
     Color prevColor = g.getColor();
+    AffineTransform prevTransform = g.getTransform();
    
     //TODO Make this kind of thing default for Drawable?
     draw0(g);
     
     g.setColor(prevColor);
+    g.setTransform(prevTransform);
   }
 
   protected void draw0(Graphics2D g) {
+    HashMap<PlainTerminal, ProcessBlock> t2b = new HashMap<>();
+    
     Point2D.Double center = getCenter();
     for (PlainOutputTerminal pot : outputTerminals) {
       g.setColor(pot.getType().getColor().brighter()); // Tweak?  Other way round?
-      g.draw(getConnectionPath(pot.getCenter(), center));
+      Point2D.Double pt = pot.getCenter(); //TODO Ooooh...heck.  This won't work.
+      g.draw(getConnectionPath(pt, center));
     }
     for (PlainInputTerminal pit : inputTerminals) {
       g.setColor(pit.getType().getColor());
-      g.draw(getConnectionPath(pit.getCenter(), center));
+      Point2D.Double pt = pit.getCenter(); //TODO Ooooh...heck.  This won't work.
+      g.draw(getConnectionPath(pt, center));
     }
     //TODO Draw buffer, etc.
     g.draw(getConnectionPath(TOP, TOP, TOP, TOP));
@@ -111,5 +123,10 @@ public class PlainChannelConnection implements Connection, Drawable {
         path.lineTo(bx, by);
         return path;
     }
+  }
+
+  @Override
+  public TransformChain getTransformChain() {
+    return transformChain;
   }
 }

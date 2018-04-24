@@ -41,5 +41,6 @@ public interface Drawable {
    * @return 
    */
   public Point2D.Double getCenter();
-  //TODO getTransform, instead?
+  
+  public TransformChain getTransformChain();
 }

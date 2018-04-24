@@ -5,6 +5,7 @@
  */
 package com.erhannis.connections.vjcsp;
 
+import com.erhannis.connections.base.TransformChain;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.Point2D;
