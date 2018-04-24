@@ -23,10 +23,16 @@ public abstract class ProcessBlock implements Block, Drawable {
 
   protected TransformChain transformChain;
   
+  public ProcessBlock(TransformChain transformChain) {
+    this.transformChain = transformChain;
+  }
+  
   @Override
   public void draw(Graphics2D g) {
     Color prevColor = g.getColor();
     AffineTransform prevTransform = g.getTransform();
+    // Blehhhh.  As much as I didn't want to put this here, here's where it makes most sense.
+    g.transform(getTransformChain().transform);
    
     //TODO Make this kind of thing default for Drawable?
     draw0(g);
@@ -39,13 +45,14 @@ public abstract class ProcessBlock implements Block, Drawable {
   }
   
   protected void drawTerminals(Graphics2D g) {
-    HashSet<Terminal> inputTerminals = new HashSet<>();
-    HashSet<Terminal> outputTerminals = new HashSet<>();
+    HashSet<PlainInputTerminal> inputTerminals = new HashSet<>();
+    HashSet<PlainOutputTerminal> outputTerminals = new HashSet<>();
+    //TODO I'm not sure whether to be uneasy about the class-specificity, here
     for (Terminal t : terminals) {
       if (t instanceof PlainInputTerminal) {
-        inputTerminals.add(t);
+        inputTerminals.add((PlainInputTerminal)t);
       } else if (t instanceof PlainOutputTerminal) {
-        outputTerminals.add(t);
+        outputTerminals.add((PlainOutputTerminal)t);
       } else {
         throw new RuntimeException("Unhandled terminal type: " + t.getClass());
       }
@@ -56,26 +63,28 @@ public abstract class ProcessBlock implements Block, Drawable {
     double scale;
     int i;
     count = inputTerminals.size();
-    scale = 1 / (2 * count);
+    scale = 1.0 / (2 * Math.max(1, count));
     i = 0;
-    for (Terminal t : inputTerminals) {
-      i++;
+    for (PlainInputTerminal t : inputTerminals) {
       double ty = TOP;
-      double tx = LEFT + ((i + 1) * (WIDTH / (count + 1)));
-      g.transform(new AffineTransform(scale, 0, 0, scale, tx, ty));
-      ((Drawable)t).draw(g);
+      double tx = LEFT + ((i + 1) * (WIDTH / (count + 1.0)));
+      //TODO Is it bad I rely on the in-place nature of getTransformChain?
+      t.getTransformChain().transform = new AffineTransform(scale, 0, 0, scale, tx, ty);
+      t.draw(g);
       g.setTransform(base);
-    }
-    count = inputTerminals.size();
-    scale = 1 / (2 * count);
-    i = 0;
-    for (Terminal t : outputTerminals) {
       i++;
+    }
+    count = outputTerminals.size();
+    scale = 1.0 / (2 * Math.max(1, count));
+    i = 0;
+    for (PlainOutputTerminal t : outputTerminals) {
       double ty = TOP + HEIGHT;
-      double tx = LEFT + ((i + 1) * (WIDTH / (count + 1)));
-      g.transform(new AffineTransform(scale, 0, 0, scale, tx, ty));
-      ((Drawable)t).draw(g);
+      double tx = LEFT + ((i + 1) * (WIDTH / (count + 1.0)));
+      //TODO Is it bad I rely on the in-place nature of getTransformChain?
+      t.getTransformChain().transform = new AffineTransform(scale, 0, 0, scale, tx, ty);
+      t.draw(g);
       g.setTransform(base);
+      i++;
     }
   }
   

@@ -25,7 +25,7 @@ public class PlainChannelConnection implements Connection, Drawable {
   protected static final int CLMODE_SQUARE = 0;
   protected static final int CLMODE_DIRECT = 1;
   
-  protected static final int CONNECTION_LINE_MODE = CLMODE_SQUARE;
+  protected static final int CONNECTION_LINE_MODE = CLMODE_DIRECT;
   
   protected final HashSet<PlainOutputTerminal> outputTerminals = new HashSet<>();
   protected final HashSet<PlainInputTerminal> inputTerminals = new HashSet<>();
@@ -53,6 +53,8 @@ public class PlainChannelConnection implements Connection, Drawable {
   public void draw(Graphics2D g) {
     Color prevColor = g.getColor();
     AffineTransform prevTransform = g.getTransform();
+    // Blehhhh.  As much as I didn't want to put this here, here's where it makes most sense.
+    g.transform(getTransformChain().transform);
    
     //TODO Make this kind of thing default for Drawable?
     draw0(g);
@@ -62,33 +64,36 @@ public class PlainChannelConnection implements Connection, Drawable {
   }
 
   protected void draw0(Graphics2D g) {
-    HashMap<PlainTerminal, ProcessBlock> t2b = new HashMap<>();
-    
     Point2D.Double center = getCenter();
+    Point2D.Double pt = new Point2D.Double();
     for (PlainOutputTerminal pot : outputTerminals) {
       g.setColor(pot.getType().getColor().brighter()); // Tweak?  Other way round?
-      Point2D.Double pt = pot.getCenter(); //TODO Ooooh...heck.  This won't work.
+//g.setColor(Color.red); //TODO Remove
+      pot.transformChain.computeWorldTransform().transform(pot.getCenter(), pt);
       g.draw(getConnectionPath(pt, center));
     }
     for (PlainInputTerminal pit : inputTerminals) {
       g.setColor(pit.getType().getColor());
-      Point2D.Double pt = pit.getCenter(); //TODO Ooooh...heck.  This won't work.
-      g.draw(getConnectionPath(pt, center));
+//g.setColor(Color.green); //TODO Remove
+      pit.transformChain.computeWorldTransform().transform(pit.getCenter(), pt);
+      g.draw(getConnectionPath(center, pt));
     }
     //TODO Draw buffer, etc.
-    g.draw(getConnectionPath(TOP, TOP, TOP, TOP));
+    //g.draw(getConnectionPath(TOP, TOP, TOP, TOP));
   }
 
   @Override
   public Point2D.Double getCenter() {
     Point2D.Double result = new Point2D.Double();
     for (PlainInputTerminal pit : inputTerminals) {
-      Point2D.Double pt = pit.getCenter();
+      Point2D.Double pt = new Point2D.Double();
+      pit.transformChain.computeWorldTransform().transform(pit.getCenter(), pt);
       result.x += pt.x;
       result.y += pt.y;
     }
     for (PlainOutputTerminal pot : outputTerminals) {
-      Point2D.Double pt = pot.getCenter();
+      Point2D.Double pt = new Point2D.Double();
+      pot.transformChain.computeWorldTransform().transform(pot.getCenter(), pt);
       result.x += pt.x;
       result.y += pt.y;
     }

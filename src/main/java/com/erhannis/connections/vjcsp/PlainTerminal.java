@@ -21,7 +21,8 @@ public abstract class PlainTerminal extends VJCSPTerminal implements Drawable {
   
   protected TransformChain transformChain;
   
-  protected PlainTerminal(IntOrEventualClass type) {
+  protected PlainTerminal(TransformChain transformChain, IntOrEventualClass type) {
+    this.transformChain = transformChain;
     this.type = type;
   }
   
@@ -33,6 +34,8 @@ public abstract class PlainTerminal extends VJCSPTerminal implements Drawable {
   public void draw(Graphics2D g) {
     Color prevColor = g.getColor();
     AffineTransform prevTransform = g.getTransform();
+    // Blehhhh.  As much as I didn't want to put this here, here's where it makes most sense.
+    g.transform(getTransformChain().transform);
    
     //TODO Make this kind of thing default for Drawable?
     draw0(g);

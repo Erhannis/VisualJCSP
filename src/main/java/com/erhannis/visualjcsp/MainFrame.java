@@ -5,17 +5,79 @@
  */
 package com.erhannis.visualjcsp;
 
+import com.erhannis.connections.ConnectionsPanel;
+import com.erhannis.connections.base.TransformChain;
+import com.erhannis.connections.vjcsp.FileProcessBlock;
+import com.erhannis.connections.vjcsp.IntOrEventualClass;
+import com.erhannis.connections.vjcsp.PlainInputTerminal;
+import com.erhannis.connections.vjcsp.PlainOutputTerminal;
+import com.erhannis.connections.vjcsp.ProcessBlock;
+import com.erhannis.connections.vjcsp.VJCSPNetwork;
+import java.awt.geom.AffineTransform;
+import java.util.Random;
+
 /**
  *
  * @author erhannis
  */
 public class MainFrame extends javax.swing.JFrame {
 
+  protected ConnectionsPanel panel;
+
   /**
    * Creates new form MainFrame
    */
   public MainFrame() {
     initComponents();
+
+    panel = new ConnectionsPanel();
+    jSplitPane1.setRightComponent(panel);
+
+    {
+      // Example
+      VJCSPNetwork network = new VJCSPNetwork();
+
+      FileProcessBlock generate1 = new FileProcessBlock(new TransformChain(AffineTransform.getTranslateInstance(-4, -4), network.getTransformChain()));
+      PlainOutputTerminal g1o = generate1.addPlainOutputTerminal(new IntOrEventualClass(String.class));
+
+      FileProcessBlock generate2 = new FileProcessBlock(new TransformChain(AffineTransform.getTranslateInstance(4, -4), network.getTransformChain()));
+      PlainOutputTerminal g2o = generate2.addPlainOutputTerminal(new IntOrEventualClass(String.class));
+
+      FileProcessBlock concat = new FileProcessBlock(new TransformChain(AffineTransform.getTranslateInstance(0, 0), network.getTransformChain()));
+      PlainInputTerminal ci1 = concat.addPlainInputTerminal(new IntOrEventualClass(String.class));
+      PlainInputTerminal ci2 = concat.addPlainInputTerminal(new IntOrEventualClass(String.class));
+      PlainOutputTerminal co = concat.addPlainOutputTerminal(new IntOrEventualClass(String.class));
+
+      Random r = new Random();
+      for (int i = 0; i < 20; i++) {
+        FileProcessBlock fpb = new FileProcessBlock(new TransformChain(AffineTransform.getTranslateInstance(r.nextDouble() * 20,  r.nextDouble() * 20), network.getTransformChain()));
+        int top = r.nextInt(4);
+        for (int j = 0; j < top; j++) {
+          fpb.addPlainInputTerminal(new IntOrEventualClass(String.class));
+        }
+        top = r.nextInt(4);
+        for (int j = 0; j < top; j++) {
+          fpb.addPlainOutputTerminal(new IntOrEventualClass(String.class));
+        }
+        network.blocks.add(fpb);
+      }
+
+      FileProcessBlock sysout = new FileProcessBlock(new TransformChain(AffineTransform.getTranslateInstance(0, 4), network.getTransformChain()));
+      PlainInputTerminal si = sysout.addPlainInputTerminal(new IntOrEventualClass(String.class));
+
+      network.blocks.add(generate1);
+      network.blocks.add(generate2);
+      network.blocks.add(concat);
+      network.blocks.add(sysout);
+      network.connect(g1o, ci1);
+      network.connect(g2o, ci2);
+      network.connect(co, si);
+
+      panel.setNetwork(network);
+      if (1 == 1) {
+        return;
+      }
+    }
   }
 
   /**
@@ -27,17 +89,47 @@ public class MainFrame extends javax.swing.JFrame {
   // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
   private void initComponents() {
 
+    jSplitPane1 = new javax.swing.JSplitPane();
+    jPanel1 = new javax.swing.JPanel();
+    jPanel2 = new javax.swing.JPanel();
+
     setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+
+    javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+    jPanel1.setLayout(jPanel1Layout);
+    jPanel1Layout.setHorizontalGroup(
+      jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+      .addGap(0, 100, Short.MAX_VALUE)
+    );
+    jPanel1Layout.setVerticalGroup(
+      jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+      .addGap(0, 300, Short.MAX_VALUE)
+    );
+
+    jSplitPane1.setLeftComponent(jPanel1);
+
+    javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
+    jPanel2.setLayout(jPanel2Layout);
+    jPanel2Layout.setHorizontalGroup(
+      jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+      .addGap(0, 291, Short.MAX_VALUE)
+    );
+    jPanel2Layout.setVerticalGroup(
+      jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+      .addGap(0, 300, Short.MAX_VALUE)
+    );
+
+    jSplitPane1.setRightComponent(jPanel2);
 
     javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
     getContentPane().setLayout(layout);
     layout.setHorizontalGroup(
       layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addGap(0, 400, Short.MAX_VALUE)
+      .addComponent(jSplitPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
     );
     layout.setVerticalGroup(
       layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addGap(0, 300, Short.MAX_VALUE)
+      .addComponent(jSplitPane1)
     );
 
     pack();
@@ -48,7 +140,7 @@ public class MainFrame extends javax.swing.JFrame {
    */
   public static void main(String args[]) {
     /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
+    //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
      * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
      */
@@ -68,7 +160,7 @@ public class MainFrame extends javax.swing.JFrame {
     } catch (javax.swing.UnsupportedLookAndFeelException ex) {
       java.util.logging.Logger.getLogger(MainFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
     }
-        //</editor-fold>
+    //</editor-fold>
 
     /* Create and display the form */
     java.awt.EventQueue.invokeLater(new Runnable() {
@@ -79,5 +171,8 @@ public class MainFrame extends javax.swing.JFrame {
   }
 
   // Variables declaration - do not modify//GEN-BEGIN:variables
+  private javax.swing.JPanel jPanel1;
+  private javax.swing.JPanel jPanel2;
+  private javax.swing.JSplitPane jSplitPane1;
   // End of variables declaration//GEN-END:variables
 }

@@ -10,5 +10,5 @@ package com.erhannis.connections.base;
  * @author erhannis
  */
 public interface Block {
-  
+  //TODO `addTerminal`?...hmm, maybe not?  Some block classes may have a hardcoded terminal configuration.  getTerminals, then?
 }

@@ -22,6 +22,16 @@ public class TransformChain {
   
   //TODO Cache?
   public AffineTransform computeWorldTransform() {
+    /*/
+    if (parent != null) {
+      //TODO Not sure which way around this goes
+      AffineTransform result = new AffineTransform(transform);
+      result.concatenate(parent.computeWorldTransform());
+      return result;
+    } else {
+      return transform;
+    }
+    /*/
     if (parent != null) {
       //TODO Not sure which way around this goes
       AffineTransform result = parent.computeWorldTransform();
@@ -30,5 +40,6 @@ public class TransformChain {
     } else {
       return new AffineTransform(transform);
     }
+    /**/
   }
 }

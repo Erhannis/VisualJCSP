@@ -19,6 +19,10 @@ public class FileProcessBlock extends ProcessBlock {
   
   //TODO Track file
   
+  public FileProcessBlock(TransformChain transformChain) {
+    super(transformChain);
+  }
+  
   @Override
   protected void draw0(Graphics2D g) {
     g.setColor(COLOR);
@@ -29,5 +33,22 @@ public class FileProcessBlock extends ProcessBlock {
   public Point2D.Double getCenter() {
     //TODO Static or something?
     return new Point2D.Double(0, 0);
+  }
+
+  public PlainInputTerminal addPlainInputTerminal(IntOrEventualClass type) {
+    // If the AffineTransform doesn't get set before the terminal is drawn, an error will be thrown - as it should.
+    return addTerminal(new PlainInputTerminal(new TransformChain(null, transformChain), type));
+  }
+
+  public PlainOutputTerminal addPlainOutputTerminal(IntOrEventualClass type) {
+    // If the AffineTransform doesn't get set before the terminal is drawn, an error will be thrown - as it should.
+    return addTerminal(new PlainOutputTerminal(new TransformChain(null, transformChain), type));
+  }
+  
+  //TODO Extract to Block?
+  //TODO Is the generics overkill?
+  public <T extends VJCSPTerminal> T addTerminal(T terminal) {
+    this.terminals.add(terminal);
+    return terminal;
   }
 }

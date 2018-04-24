@@ -5,6 +5,8 @@
  */
 package com.erhannis.connections;
 
+import com.erhannis.connections.vjcsp.VJCSPNetwork;
+import java.awt.BasicStroke;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
@@ -15,11 +17,23 @@ import java.awt.geom.AffineTransform;
  */
 public class ConnectionsPanel extends javax.swing.JPanel {
 
+  //TODO This doesn't seem very generic
+  protected VJCSPNetwork network;
+  
   /**
    * Creates new form ConnectionsPanel
    */
   public ConnectionsPanel() {
     initComponents();
+  }
+  
+  public void setNetwork(VJCSPNetwork network) {
+    this.network = network;
+    this.repaint();
+  }
+  
+  public VJCSPNetwork getNetwork() {
+    return network;
   }
 
   @Override
@@ -28,9 +42,15 @@ public class ConnectionsPanel extends javax.swing.JPanel {
     Graphics2D g = (Graphics2D)g0;
 
     AffineTransform saveAT = g.getTransform();
+
+    g.setTransform(new AffineTransform(10, 0, 0, 10, 200, 200));
     //g.transform(t);
+      g.setStroke(new BasicStroke(0));
     
     // Do stuff
+    if (network != null) {
+      network.draw(g);
+    }
     
     g.setTransform(saveAT);
   }

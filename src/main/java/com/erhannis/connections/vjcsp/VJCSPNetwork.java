@@ -9,6 +9,7 @@ import com.erhannis.connections.base.Block;
 import com.erhannis.connections.base.Connection;
 import com.erhannis.connections.base.Drawable;
 import static com.erhannis.connections.base.Drawable.TOP;
+import com.erhannis.connections.base.Terminal;
 import com.erhannis.connections.base.TransformChain;
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -26,8 +27,9 @@ import java.util.Map.Entry;
  * @author erhannis
  */
 public class VJCSPNetwork implements Drawable {
-  public HashSet<ProcessBlock> blocks;
-  public HashSet<PlainChannelConnection> connections;
+  public HashSet<ProcessBlock> blocks = new HashSet<>();
+  public HashSet<PlainChannelConnection> connections = new HashSet<>();
+  public transient HashMap<Terminal, PlainChannelConnection> t2c = new HashMap<>();
 
   protected TransformChain transformChain = new TransformChain(new AffineTransform(), null);
   
@@ -35,6 +37,8 @@ public class VJCSPNetwork implements Drawable {
   public void draw(Graphics2D g) {
     Color prevColor = g.getColor();
     AffineTransform prevTransform = g.getTransform();
+    // Blehhhh.  As much as I didn't want to put this here, here's where it makes most sense.
+    g.transform(getTransformChain().transform);
    
     //TODO Make this kind of thing default for Drawable?
     draw0(g);
@@ -64,5 +68,58 @@ public class VJCSPNetwork implements Drawable {
   @Override
   public TransformChain getTransformChain() {
     return transformChain;
+  }
+  
+  /**
+   * Currently implemented:
+   *   PlainOutputTerminal -> PlainInputTerminal
+   * 
+   * Assumes that both terminals are descendants of this network.
+   * System behavior is undefined otherwise.
+   * 
+   * //TODO Extract to...uh, where, actually?
+   * 
+   * @param a
+   * @param b 
+   */
+  public void connect(Terminal a, Terminal b) {
+    if (a instanceof PlainOutputTerminal && b instanceof PlainInputTerminal) {
+      if (t2c.containsKey(a)) {
+        if (t2c.containsKey(b)) {
+          if (t2c.get(a) != t2c.get(b)) {
+            // Error; can't (currently?) merge two connections
+            throw new IllegalArgumentException("Terminals are already connected to different connections");
+          } else {
+            // Nothing; connecting two connected terminals is a NOP
+          }
+        } else {
+          // Add B to A's Connection
+          PlainChannelConnection connection = t2c.get(a);
+          connection.addToTerminal(b);
+          t2c.put(b, connection);
+        }
+      } else if (t2c.containsKey(b)) {
+        // Add A to B's Connection
+          PlainChannelConnection connection = t2c.get(b);
+          connection.addFromTerminal(a);
+          t2c.put(a, connection);
+      } else {
+        // Create connection with both A and B
+        PlainChannelConnection connection = new PlainChannelConnection((PlainOutputTerminal)a, (PlainInputTerminal)b);
+        connections.add(connection);
+        t2c.put(a, connection);
+        t2c.put(b, connection);
+      }
+    } else {
+      throw new IllegalArgumentException("Unhandled terminal type-pair (" + a + ", " + b + ")");
+    }
+  }
+  
+  /**
+   * //TODO Extract?
+   * @param t 
+   */
+  public void disconnect(Terminal t) {
+    throw new RuntimeException("Not yet implemented");
   }
 }
