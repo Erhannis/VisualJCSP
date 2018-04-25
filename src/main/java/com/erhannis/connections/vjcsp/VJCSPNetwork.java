@@ -50,7 +50,6 @@ public class VJCSPNetwork implements Drawable {
   protected void draw0(Graphics2D g) {
     AffineTransform prevTransform = g.getTransform();
     for (ProcessBlock block : blocks) {
-      g.transform(block.getTransformChain().transform);
       block.draw(g);
       g.setTransform(prevTransform);
     }

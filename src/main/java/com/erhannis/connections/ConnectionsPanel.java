@@ -43,9 +43,9 @@ public class ConnectionsPanel extends javax.swing.JPanel {
 
     AffineTransform saveAT = g.getTransform();
 
-    g.setTransform(new AffineTransform(10, 0, 0, 10, 200, 200));
+    g.setTransform(new AffineTransform(20, 0, 0, 20, 200, 200));
     //g.transform(t);
-      g.setStroke(new BasicStroke(0));
+    g.setStroke(new BasicStroke(0));
     
     // Do stuff
     if (network != null) {

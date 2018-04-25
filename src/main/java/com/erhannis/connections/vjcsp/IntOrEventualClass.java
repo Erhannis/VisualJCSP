@@ -26,21 +26,21 @@ public class IntOrEventualClass {
     this.type = Type.INT;
     this.clazz = null;
     this.clazzString = null;
-    this.color = new Color(0xFF000000 | this.hashCode());
+    this.color = new Color(0xFF000000 | this.hashCode(), true);
   }
   
   public IntOrEventualClass(Class clazz) {
     this.type = Type.CLASS;
     this.clazz = clazz;
     this.clazzString = null;
-    this.color = new Color(0xFF000000 | this.hashCode());
+    this.color = new Color(0xFF000000 | this.hashCode(), true);
   }
 
   public IntOrEventualClass(String clazzString) {
     this.type = Type.CLASS_STRING;
     this.clazz = null;
     this.clazzString = clazzString;
-    this.color = new Color(0xFF000000 | this.hashCode());
+    this.color = new Color(0xFF000000 | this.hashCode(), true);
   }
 
   @Override

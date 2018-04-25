@@ -59,7 +59,7 @@ public class MainFrame extends javax.swing.JFrame {
         for (int j = 0; j < top; j++) {
           fpb.addPlainOutputTerminal(new IntOrEventualClass(String.class));
         }
-        network.blocks.add(fpb);
+        //network.blocks.add(fpb);
       }
 
       FileProcessBlock sysout = new FileProcessBlock(new TransformChain(AffineTransform.getTranslateInstance(0, 4), network.getTransformChain()));
