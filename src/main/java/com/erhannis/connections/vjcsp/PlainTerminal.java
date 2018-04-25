@@ -21,7 +21,8 @@ public abstract class PlainTerminal extends VJCSPTerminal implements Drawable {
   
   protected TransformChain transformChain;
   
-  protected PlainTerminal(TransformChain transformChain, IntOrEventualClass type) {
+  protected PlainTerminal(String label, TransformChain transformChain, IntOrEventualClass type) {
+    super(label);
     this.transformChain = transformChain;
     this.type = type;
   }

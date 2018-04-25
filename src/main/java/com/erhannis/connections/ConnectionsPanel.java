@@ -5,33 +5,60 @@
  */
 package com.erhannis.connections;
 
+import com.erhannis.connections.base.Block;
 import com.erhannis.connections.vjcsp.VJCSPNetwork;
 import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.NoninvertibleTransformException;
+import java.util.HashSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
  * @author erhannis
  */
 public class ConnectionsPanel extends javax.swing.JPanel {
+  private static final double SCALE_INCREMENT = 1.1;
+  private static final double VIEW_PRESCALE = 20;
+
+  private static final Color COLOR_BACKGROUND = Color.BLACK;
+  private static final Color COLOR_NORMAL = Color.LIGHT_GRAY;
+  private static final Color COLOR_HIGHLIGHT = Color.CYAN;
+  private static final Color COLOR_HIGH = Color.GREEN;
+  private static final Color COLOR_LOW = Color.BLACK;
 
   //TODO This doesn't seem very generic
   protected VJCSPNetwork network;
-  
+  public HashSet<Block> selectedBlocks = new HashSet<Block>();
+
+  public AffineTransform at = new AffineTransform(VIEW_PRESCALE, 0, 0, VIEW_PRESCALE, 0, 0);
+  public AffineTransform ati;
+  public static final Font FONT = new Font("Monospaced", 0, 14);
+
   /**
    * Creates new form ConnectionsPanel
    */
   public ConnectionsPanel() {
+    try {
+      ati = at.createInverse();
+    } catch (NoninvertibleTransformException ex) {
+      Logger.getLogger(ConnectionsPanel.class.getName()).log(Level.SEVERE, null, ex);
+    }
+
     initComponents();
+    setBackground(COLOR_BACKGROUND);
   }
-  
+
   public void setNetwork(VJCSPNetwork network) {
     this.network = network;
     this.repaint();
   }
-  
+
   public VJCSPNetwork getNetwork() {
     return network;
   }
@@ -39,22 +66,22 @@ public class ConnectionsPanel extends javax.swing.JPanel {
   @Override
   protected void paintComponent(Graphics g0) {
     super.paintComponent(g0); //To change body of generated methods, choose Tools | Templates.
-    Graphics2D g = (Graphics2D)g0;
+    Graphics2D g = (Graphics2D) g0;
 
     AffineTransform saveAT = g.getTransform();
 
-    g.transform(new AffineTransform(20, 0, 0, 20, 200, 200));
+    g.transform(at);
     //g.transform(t);
     g.setStroke(new BasicStroke(0));
-    
+
     // Do stuff
     if (network != null) {
       network.draw(g);
     }
-    
+
     g.setTransform(saveAT);
   }
-  
+
   /**
    * This method is called from within the constructor to initialize the form.
    * WARNING: Do NOT modify this code. The content of this method is always
@@ -63,6 +90,12 @@ public class ConnectionsPanel extends javax.swing.JPanel {
   @SuppressWarnings("unchecked")
   // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
   private void initComponents() {
+
+    addMouseWheelListener(new java.awt.event.MouseWheelListener() {
+      public void mouseWheelMoved(java.awt.event.MouseWheelEvent evt) {
+        formMouseWheelMoved(evt);
+      }
+    });
 
     javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
     this.setLayout(layout);
@@ -75,6 +108,21 @@ public class ConnectionsPanel extends javax.swing.JPanel {
       .addGap(0, 300, Short.MAX_VALUE)
     );
   }// </editor-fold>//GEN-END:initComponents
+
+  private void formMouseWheelMoved(java.awt.event.MouseWheelEvent evt) {//GEN-FIRST:event_formMouseWheelMoved
+    if (selectedBlocks.isEmpty()) { // Otherwise we're resizing an element
+      double scale = Math.pow(SCALE_INCREMENT, -evt.getPreciseWheelRotation());
+      at.preConcatenate(AffineTransform.getTranslateInstance(-evt.getX(), -evt.getY()));
+      at.preConcatenate(AffineTransform.getScaleInstance(scale, scale));
+      at.preConcatenate(AffineTransform.getTranslateInstance(evt.getX(), evt.getY()));
+      try {
+        ati = at.createInverse();
+      } catch (NoninvertibleTransformException ex) {
+        Logger.getLogger(ConnectionsPanel.class.getName()).log(Level.SEVERE, null, ex);
+      }
+      repaint();
+    }
+  }//GEN-LAST:event_formMouseWheelMoved
 
 
   // Variables declaration - do not modify//GEN-BEGIN:variables

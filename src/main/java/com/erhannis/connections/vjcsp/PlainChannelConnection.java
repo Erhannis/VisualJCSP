@@ -68,13 +68,13 @@ public class PlainChannelConnection implements Connection, Drawable {
     Point2D.Double center = getCenter();
     Point2D.Double pt = new Point2D.Double();
     for (PlainOutputTerminal pot : outputTerminals) {
-      g.setColor(pot.getType().getColor().brighter()); // Tweak?  Other way round?
+      g.setColor(pot.getType().getColor());
       pot.transformChain.computeWorldTransform().transform(pot.getCenter(), pt);
       //g.draw(new Rectangle2D.Double(pt.x - 1, pt.y - 1, 2, 2));
       g.draw(getConnectionPath(pt, center));
     }
     for (PlainInputTerminal pit : inputTerminals) {
-      g.setColor(pit.getType().getColor());
+      g.setColor(pit.getType().getColor().brighter()); // Tweak?  Other way round?
       pit.transformChain.computeWorldTransform().transform(pit.getCenter(), pt);
       //g.draw(new Rectangle2D.Double(pt.x - 1, pt.y - 1, 2, 2));
       g.draw(getConnectionPath(center, pt));

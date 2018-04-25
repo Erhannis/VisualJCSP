@@ -7,6 +7,7 @@ package com.erhannis.connections.vjcsp;
 
 import com.erhannis.connections.base.Block;
 import com.erhannis.connections.base.Drawable;
+import com.erhannis.connections.base.Labeled;
 import com.erhannis.connections.base.Terminal;
 import com.erhannis.connections.base.TransformChain;
 import java.awt.Color;
@@ -18,12 +19,14 @@ import java.util.HashSet;
  *
  * @author erhannis
  */
-public abstract class ProcessBlock implements Block, Drawable {
+public abstract class ProcessBlock implements Block, Drawable, Labeled {
   protected final HashSet<VJCSPTerminal> terminals = new HashSet<>();
 
+  protected String label;
   protected TransformChain transformChain;
   
-  public ProcessBlock(TransformChain transformChain) {
+  public ProcessBlock(String label, TransformChain transformChain) {
+    this.label = label;
     this.transformChain = transformChain;
   }
   
@@ -93,5 +96,10 @@ public abstract class ProcessBlock implements Block, Drawable {
   @Override
   public TransformChain getTransformChain() {
     return transformChain;
+  }
+
+  @Override
+  public String getLabel() {
+    return label;
   }
 }
