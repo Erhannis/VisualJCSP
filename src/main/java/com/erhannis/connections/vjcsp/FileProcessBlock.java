@@ -15,8 +15,6 @@ import java.awt.geom.Point2D;
  * @author erhannis
  */
 public class FileProcessBlock extends ProcessBlock {
-  public static final Color COLOR = Color.CYAN; // Guess this one is cyan
-  
   //TODO Track file
   
   public FileProcessBlock(String label, TransformChain transformChain) {
@@ -25,7 +23,7 @@ public class FileProcessBlock extends ProcessBlock {
   
   @Override
   protected void draw1(Graphics2D g) {
-    g.setColor(COLOR);
+    g.setColor(getColor());
     g.drawRect(LEFT, TOP, WIDTH, HEIGHT);
   }
 

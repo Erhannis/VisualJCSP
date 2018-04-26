@@ -108,4 +108,9 @@ public class VJCSPNetwork implements Drawable {
   public void disconnect(Terminal t) {
     throw new RuntimeException("Not yet implemented");
   }
+
+  @Override
+  public Color getColor() {
+    return Color.YELLOW; //TODO Parameterize?
+  }
 }

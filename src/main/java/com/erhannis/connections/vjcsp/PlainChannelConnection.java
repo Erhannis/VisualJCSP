@@ -54,20 +54,19 @@ public class PlainChannelConnection implements Connection, Drawable {
   public void draw0(Graphics2D g) {
     Point2D.Double center = getCenter();
     Point2D.Double pt = new Point2D.Double();
+    Color color = getColor();
     for (PlainOutputTerminal pot : outputTerminals) {
-      g.setColor(pot.getType().getColor());
+      g.setColor(color);
       pot.transformChain.computeWorldTransform().transform(pot.getCenter(), pt);
-      //g.draw(new Rectangle2D.Double(pt.x - 1, pt.y - 1, 2, 2));
       g.draw(getConnectionPath(pt, center));
     }
+    color = color.brighter();
     for (PlainInputTerminal pit : inputTerminals) {
-      g.setColor(pit.getType().getColor().brighter()); // Tweak?  Other way round?
+      g.setColor(color);
       pit.transformChain.computeWorldTransform().transform(pit.getCenter(), pt);
-      //g.draw(new Rectangle2D.Double(pt.x - 1, pt.y - 1, 2, 2));
       g.draw(getConnectionPath(center, pt));
     }
     //TODO Draw buffer, etc.
-    //g.draw(getConnectionPath(TOP, TOP, TOP, TOP));
   }
 
   @Override
@@ -121,5 +120,27 @@ public class PlainChannelConnection implements Connection, Drawable {
   @Override
   public TransformChain getTransformChain() {
     return transformChain;
+  }
+
+  @Override
+  public Color getColor() {
+    IntOrEventualClass min = null;
+    //TODO Check for bad connections?  Turn red?
+    for (PlainOutputTerminal pot : outputTerminals) {
+      if (min == null || (IntOrEventualClass.compare(min, pot.getType()) < 0)) {
+        min = pot.getType();
+      }
+    }
+    for (PlainInputTerminal pit : inputTerminals) {
+      if (min == null || (IntOrEventualClass.compare(min, pit.getType()) < 0)) {
+        min = pit.getType();
+      }
+    }
+    if (min != null) {
+      return min.getColor();
+    } else {
+      //TODO Exception?  Log?
+      return Color.RED;
+    }
   }
 }

@@ -24,7 +24,7 @@ import java.util.logging.Logger;
  */
 public class ConnectionsPanel extends javax.swing.JPanel {
   private static final double SCALE_INCREMENT = 1.1;
-  private static final double VIEW_PRESCALE = 20;
+  private static final double VIEW_PRESCALE = 1;
 
   private static final Color COLOR_BACKGROUND = Color.BLACK;
   private static final Color COLOR_NORMAL = Color.LIGHT_GRAY;

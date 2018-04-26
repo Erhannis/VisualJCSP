@@ -41,4 +41,14 @@ public abstract class PlainTerminal extends VJCSPTerminal implements Drawable {
   public TransformChain getTransformChain() {
     return transformChain;
   }
+
+  @Override
+  public Color getColor() {
+    IntOrEventualClass type = getType();
+    if (type != null) {
+      return type.getColor();
+    } else {
+      return Color.LIGHT_GRAY; //TODO Parameterize?  Throw exception?
+    }
+  }
 }

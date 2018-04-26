@@ -5,6 +5,7 @@
  */
 package com.erhannis.connections.vjcsp;
 
+import com.erhannis.connections.ConnectionsPanel;
 import com.erhannis.connections.base.Block;
 import com.erhannis.connections.base.Drawable;
 import com.erhannis.connections.base.Labeled;
@@ -91,5 +92,10 @@ public abstract class ProcessBlock implements Block, Drawable, Labeled {
   @Override
   public String getLabel() {
     return label;
+  }
+
+  @Override
+  public Color getColor() {
+    return Color.CYAN; //TODO Parameterize?
   }
 }

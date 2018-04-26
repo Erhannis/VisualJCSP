@@ -15,10 +15,10 @@ import java.awt.geom.Point2D;
  * @author erhannis
  */
 public interface Drawable {
-  public static final int TOP = -1;
-  public static final int LEFT = -1;
-  public static final int HEIGHT = 2;
-  public static final int WIDTH = 2;
+  public static final int TOP = -25;
+  public static final int LEFT = -25;
+  public static final int HEIGHT = 50;
+  public static final int WIDTH = 50;
   //TODO Ehhh, could put center here, too....
   
   /**
@@ -36,7 +36,12 @@ public interface Drawable {
     AffineTransform prevTransform = g.getTransform();
     // Blehhhh.  As much as I didn't want to put this here, here's where it makes most sense.
     g.transform(getTransformChain().transform);
-   
+
+    g.setColor(getColor());
+    if (this instanceof Labeled) {
+      g.drawString(((Labeled)this).getLabel(), LEFT, 0);
+    }
+    
     draw0(g);
     
     g.setColor(prevColor);
@@ -57,4 +62,6 @@ public interface Drawable {
   public Point2D.Double getCenter();
   
   public TransformChain getTransformChain();
+  
+  public Color getColor();
 }
