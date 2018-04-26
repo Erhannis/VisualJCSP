@@ -30,22 +30,6 @@ public abstract class PlainTerminal extends VJCSPTerminal implements Drawable {
   public IntOrEventualClass getType() {
     return type;
   }
-
-  @Override
-  public void draw(Graphics2D g) {
-    Color prevColor = g.getColor();
-    AffineTransform prevTransform = g.getTransform();
-    // Blehhhh.  As much as I didn't want to put this here, here's where it makes most sense.
-    g.transform(getTransformChain().transform);
-   
-    //TODO Make this kind of thing default for Drawable?
-    draw0(g);
-    
-    g.setColor(prevColor);
-    g.setTransform(prevTransform);
-  }
-  
-  protected abstract void draw0(Graphics2D g);
   
   @Override
   public Point2D.Double getCenter() {

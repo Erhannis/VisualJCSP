@@ -34,20 +34,7 @@ public class VJCSPNetwork implements Drawable {
   protected TransformChain transformChain = new TransformChain(new AffineTransform(), null);
   
   @Override
-  public void draw(Graphics2D g) {
-    Color prevColor = g.getColor();
-    AffineTransform prevTransform = g.getTransform();
-    // Blehhhh.  As much as I didn't want to put this here, here's where it makes most sense.
-    g.transform(getTransformChain().transform);
-   
-    //TODO Make this kind of thing default for Drawable?
-    draw0(g);
-    
-    g.setColor(prevColor);
-    g.setTransform(prevTransform);
-  }
-
-  protected void draw0(Graphics2D g) {
+  public void draw0(Graphics2D g) {
     AffineTransform prevTransform = g.getTransform();
     for (ProcessBlock block : blocks) {
       block.draw(g);

@@ -30,22 +30,14 @@ public abstract class ProcessBlock implements Block, Drawable, Labeled {
     this.transformChain = transformChain;
   }
   
-  @Override
-  public void draw(Graphics2D g) {
-    Color prevColor = g.getColor();
-    AffineTransform prevTransform = g.getTransform();
-    // Blehhhh.  As much as I didn't want to put this here, here's where it makes most sense.
-    g.transform(getTransformChain().transform);
-   
-    //TODO Make this kind of thing default for Drawable?
-    draw0(g);
+  public void draw0(Graphics2D g) {
+    draw1(g);
 
     //TODO Make holes for the terminals?
     drawTerminals(g);
-    
-    g.setColor(prevColor);
-    g.setTransform(prevTransform);
   }
+
+  protected abstract void draw1(Graphics2D g);
   
   protected void drawTerminals(Graphics2D g) {
     HashSet<PlainInputTerminal> inputTerminals = new HashSet<>();
@@ -90,8 +82,6 @@ public abstract class ProcessBlock implements Block, Drawable, Labeled {
       i++;
     }
   }
-  
-  protected abstract void draw0(Graphics2D g);
   
   @Override
   public TransformChain getTransformChain() {

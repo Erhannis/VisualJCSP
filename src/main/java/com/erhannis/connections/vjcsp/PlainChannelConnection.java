@@ -51,20 +51,7 @@ public class PlainChannelConnection implements Connection, Drawable {
   }
 
   @Override
-  public void draw(Graphics2D g) {
-    Color prevColor = g.getColor();
-    AffineTransform prevTransform = g.getTransform();
-    // Blehhhh.  As much as I didn't want to put this here, here's where it makes most sense.
-    g.transform(getTransformChain().transform);
-   
-    //TODO Make this kind of thing default for Drawable?
-    draw0(g);
-    
-    g.setColor(prevColor);
-    g.setTransform(prevTransform);
-  }
-
-  protected void draw0(Graphics2D g) {
+  public void draw0(Graphics2D g) {
     Point2D.Double center = getCenter();
     Point2D.Double pt = new Point2D.Double();
     for (PlainOutputTerminal pot : outputTerminals) {

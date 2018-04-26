@@ -5,7 +5,9 @@
  */
 package com.erhannis.connections.base;
 
+import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 
 /**
@@ -29,7 +31,19 @@ public interface Drawable {
    * 
    * @param g 
    */
-  public void draw(Graphics2D g);
+  default public void draw(Graphics2D g) {
+    Color prevColor = g.getColor();
+    AffineTransform prevTransform = g.getTransform();
+    // Blehhhh.  As much as I didn't want to put this here, here's where it makes most sense.
+    g.transform(getTransformChain().transform);
+   
+    draw0(g);
+    
+    g.setColor(prevColor);
+    g.setTransform(prevTransform);
+  };
+  
+  public void draw0(Graphics2D g);
   
   /**
    * Returns the center of the component.
