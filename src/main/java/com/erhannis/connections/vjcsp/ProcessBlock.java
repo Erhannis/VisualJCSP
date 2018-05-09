@@ -14,14 +14,16 @@ import com.erhannis.connections.base.TransformChain;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 
 /**
  *
  * @author erhannis
  */
 public abstract class ProcessBlock implements Block, Drawable, Labeled {
-  protected final HashSet<VJCSPTerminal> terminals = new HashSet<>();
+  protected final LinkedHashSet<VJCSPTerminal> terminals = new LinkedHashSet<>();
 
   protected String label;
   protected TransformChain transformChain;
@@ -41,8 +43,8 @@ public abstract class ProcessBlock implements Block, Drawable, Labeled {
   protected abstract void draw1(Graphics2D g);
   
   protected void drawTerminals(Graphics2D g) {
-    HashSet<PlainInputTerminal> inputTerminals = new HashSet<>();
-    HashSet<PlainOutputTerminal> outputTerminals = new HashSet<>();
+    LinkedHashSet<PlainInputTerminal> inputTerminals = new LinkedHashSet<>();
+    LinkedHashSet<PlainOutputTerminal> outputTerminals = new LinkedHashSet<>();
     //TODO I'm not sure whether to be uneasy about the class-specificity, here
     for (Terminal t : terminals) {
       if (t instanceof PlainInputTerminal) {
@@ -97,5 +99,10 @@ public abstract class ProcessBlock implements Block, Drawable, Labeled {
   @Override
   public Color getColor() {
     return Color.CYAN; //TODO Parameterize?
+  }
+
+  @Override
+  public Collection<Terminal> getTerminals() {
+    return new LinkedHashSet<Terminal>(terminals);
   }
 }
