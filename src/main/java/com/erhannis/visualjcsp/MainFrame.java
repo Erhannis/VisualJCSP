@@ -13,8 +13,27 @@ import com.erhannis.connections.vjcsp.PlainInputTerminal;
 import com.erhannis.connections.vjcsp.PlainOutputTerminal;
 import com.erhannis.connections.vjcsp.ProcessBlock;
 import com.erhannis.connections.vjcsp.VJCSPNetwork;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JOptionPane;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 /**
  *
@@ -32,13 +51,33 @@ public class MainFrame extends javax.swing.JFrame {
 
     panel = new ConnectionsPanel();
     jSplitPane1.setRightComponent(panel);
+    
+    this.addWindowListener(new WindowAdapter() {
+      public void windowClosing(WindowEvent ev) {
+        if (hasChanged()) {
+          switch (JOptionPane.showConfirmDialog(MainFrame.this, "Save before closing?")) {
+            case JOptionPane.YES_OPTION:
+              saveNetwork();
+              MainFrame.this.dispose();
+              break;
+            case JOptionPane.NO_OPTION:
+              MainFrame.this.dispose();
+              break;
+            case JOptionPane.CANCEL_OPTION:
+              break;
+          }
+        } else {
+          MainFrame.this.dispose();
+        }
+      }
+    });
 
     {
       // Example
       VJCSPNetwork network = new VJCSPNetwork();
 
       double scale = 20;
-      
+
       FileProcessBlock generate1 = new FileProcessBlock("Generate 1", new TransformChain(AffineTransform.getTranslateInstance(4 * scale, 4 * scale), network.getTransformChain()));
       PlainOutputTerminal g1o = generate1.addPlainOutputTerminal("StrOut", new IntOrEventualClass(String.class));
 
@@ -52,14 +91,14 @@ public class MainFrame extends javax.swing.JFrame {
 
       Random r = new Random();
       for (int i = 0; i < 20; i++) {
-        FileProcessBlock fpb = new FileProcessBlock("test " + i, new TransformChain(AffineTransform.getTranslateInstance(r.nextDouble() * 20 * scale,  r.nextDouble() * 20 * scale), network.getTransformChain()));
+        FileProcessBlock fpb = new FileProcessBlock("test " + i, new TransformChain(AffineTransform.getTranslateInstance(r.nextDouble() * 20 * scale, r.nextDouble() * 20 * scale), network.getTransformChain()));
         int top = r.nextInt(4);
         for (int j = 0; j < top; j++) {
-          fpb.addPlainInputTerminal(i+"i"+j, new IntOrEventualClass(String.class));
+          fpb.addPlainInputTerminal(i + "i" + j, new IntOrEventualClass(String.class));
         }
         top = r.nextInt(4);
         for (int j = 0; j < top; j++) {
-          fpb.addPlainOutputTerminal(i+"o"+j, new IntOrEventualClass(String.class));
+          fpb.addPlainOutputTerminal(i + "o" + j, new IntOrEventualClass(String.class));
         }
         //network.blocks.add(fpb);
       }
@@ -82,6 +121,17 @@ public class MainFrame extends javax.swing.JFrame {
     }
   }
 
+  private boolean hasChanged() {
+    //TODO Do
+    System.err.println("Implement hasChanged");
+    return false;
+  }
+  
+  private void saveNetwork() {
+    //TODO Do
+    System.err.println("Implement saveNetwork");
+  }
+  
   /**
    * This method is called from within the constructor to initialize the form.
    * WARNING: Do NOT modify this code. The content of this method is always
@@ -95,7 +145,7 @@ public class MainFrame extends javax.swing.JFrame {
     jPanel1 = new javax.swing.JPanel();
     jPanel2 = new javax.swing.JPanel();
 
-    setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+    setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
 
     javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
     jPanel1.setLayout(jPanel1Layout);
@@ -127,7 +177,7 @@ public class MainFrame extends javax.swing.JFrame {
     getContentPane().setLayout(layout);
     layout.setHorizontalGroup(
       layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addComponent(jSplitPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
+      .addComponent(jSplitPane1)
     );
     layout.setVerticalGroup(
       layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
