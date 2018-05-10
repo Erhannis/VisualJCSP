@@ -34,14 +34,14 @@ public class VJCSPNetwork implements Drawable {
   protected TransformChain transformChain = new TransformChain(new AffineTransform(), null);
   
   @Override
-  public void draw0(Graphics2D g) {
+  public void draw0(Graphics2D g, Color colorOverride) {
     AffineTransform prevTransform = g.getTransform();
     for (ProcessBlock block : blocks) {
-      block.draw(g);
+      block.draw(g, colorOverride);
       g.setTransform(prevTransform);
     }
     for (PlainChannelConnection connection : connections) {
-      connection.draw(g);
+      connection.draw(g, colorOverride);
     }
     //TODO Draw border or something?
   }

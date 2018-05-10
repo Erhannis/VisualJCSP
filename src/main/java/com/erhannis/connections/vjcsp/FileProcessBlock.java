@@ -22,8 +22,8 @@ public class FileProcessBlock extends ProcessBlock {
   }
   
   @Override
-  protected void draw1(Graphics2D g) {
-    g.setColor(getColor());
+  protected void draw1(Graphics2D g, Color colorOverride) {
+    g.setColor(colorOverride != null ? colorOverride : getColor());
     g.drawRect(LEFT, TOP, WIDTH, HEIGHT);
   }
 

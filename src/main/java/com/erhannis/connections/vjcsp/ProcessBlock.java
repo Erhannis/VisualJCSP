@@ -33,16 +33,16 @@ public abstract class ProcessBlock implements Block, Drawable, Labeled {
     this.transformChain = transformChain;
   }
   
-  public void draw0(Graphics2D g) {
-    draw1(g);
+  public void draw0(Graphics2D g, Color colorOverride) {
+    draw1(g, colorOverride);
 
     //TODO Make holes for the terminals?
-    drawTerminals(g);
+    drawTerminals(g, colorOverride);
   }
 
-  protected abstract void draw1(Graphics2D g);
+  protected abstract void draw1(Graphics2D g, Color colorOverride);
   
-  protected void drawTerminals(Graphics2D g) {
+  protected void drawTerminals(Graphics2D g, Color colorOverride) {
     LinkedHashSet<PlainInputTerminal> inputTerminals = new LinkedHashSet<>();
     LinkedHashSet<PlainOutputTerminal> outputTerminals = new LinkedHashSet<>();
     //TODO I'm not sure whether to be uneasy about the class-specificity, here
@@ -68,7 +68,7 @@ public abstract class ProcessBlock implements Block, Drawable, Labeled {
       double tx = LEFT + ((i + 1) * (WIDTH / (count + 1.0)));
       //TODO Is it bad I rely on the in-place nature of getTransformChain?
       t.getTransformChain().transform = new AffineTransform(scale, 0, 0, scale, tx, ty);
-      t.draw(g);
+      t.draw(g, colorOverride);
       g.setTransform(base);
       i++;
     }
@@ -80,7 +80,7 @@ public abstract class ProcessBlock implements Block, Drawable, Labeled {
       double tx = LEFT + ((i + 1) * (WIDTH / (count + 1.0)));
       //TODO Is it bad I rely on the in-place nature of getTransformChain?
       t.getTransformChain().transform = new AffineTransform(scale, 0, 0, scale, tx, ty);
-      t.draw(g);
+      t.draw(g, colorOverride);
       g.setTransform(base);
       i++;
     }
@@ -98,7 +98,7 @@ public abstract class ProcessBlock implements Block, Drawable, Labeled {
 
   @Override
   public Color getColor() {
-    return Color.CYAN; //TODO Parameterize?
+    return Color.ORANGE; //TODO Parameterize?
   }
 
   @Override

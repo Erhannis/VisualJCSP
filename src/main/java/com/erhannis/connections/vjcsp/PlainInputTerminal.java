@@ -32,8 +32,8 @@ public class PlainInputTerminal extends PlainTerminal {
   }
 
   @Override
-  public void draw0(Graphics2D g) {
-    g.setColor(type.getColor());
+  public void draw0(Graphics2D g, Color colorOverride) {
+    g.setColor(colorOverride != null ? colorOverride : type.getColor());
     g.drawArc(LEFT, TOP, WIDTH, HEIGHT, 180, 180);
   }
 }

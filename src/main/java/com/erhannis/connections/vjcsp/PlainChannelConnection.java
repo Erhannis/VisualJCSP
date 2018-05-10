@@ -52,22 +52,23 @@ public class PlainChannelConnection implements Connection, Drawable {
   }
 
   @Override
-  public void draw0(Graphics2D g) {
+  public void draw0(Graphics2D g, Color colorOverride) {
     Point2D.Double center = getCenter();
     Point2D.Double pt = new Point2D.Double();
-    Color color = getColor();
+    Color color = colorOverride != null ? colorOverride : getColor();
     for (PlainOutputTerminal pot : outputTerminals) {
       g.setColor(color);
       pot.transformChain.computeWorldTransform().transform(pot.getCenter(), pt);
       g.draw(getConnectionPath(pt, center));
     }
-    color = color.brighter();
+    color = color.brighter(); //TODO Should this be overridden?
     for (PlainInputTerminal pit : inputTerminals) {
       g.setColor(color);
       pit.transformChain.computeWorldTransform().transform(pit.getCenter(), pt);
       g.draw(getConnectionPath(center, pt));
     }
     //TODO Draw buffer, etc.
+    System.err.println("NOTICE Don't forget to draw the buffer, etc.");
   }
 
   @Override

@@ -30,25 +30,31 @@ public interface Drawable {
    * REALLY SHOULD return with g's transform and color as you found it.
    * 
    * @param g 
+   * @param colorOverride  null if no override
    */
-  default public void draw(Graphics2D g) {
+  
+  default public void draw(Graphics2D g, Color colorOverride) {
     Color prevColor = g.getColor();
     AffineTransform prevTransform = g.getTransform();
     // Blehhhh.  As much as I didn't want to put this here, here's where it makes most sense.
     g.transform(getTransformChain().transform);
 
-    g.setColor(getColor());
+    if (colorOverride != null) {
+      g.setColor(colorOverride);
+    } else {
+      g.setColor(getColor());
+    }
     if (this instanceof Labeled) {
       g.drawString(((Labeled)this).getLabel(), LEFT, 0);
     }
     
-    draw0(g);
+    draw0(g, colorOverride);
     
     g.setColor(prevColor);
     g.setTransform(prevTransform);
   };
-  
-  public void draw0(Graphics2D g);
+
+  public void draw0(Graphics2D g, Color colorOverride);
   
   /**
    * Returns the center of the component.
