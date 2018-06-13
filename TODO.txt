@@ -6,3 +6,4 @@ Allow generics
 Allow copy blocks
 Show block/terminal names
 Fix connection weirdness
+When connecting terminal, highlight acceptable targets

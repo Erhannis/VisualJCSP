@@ -17,22 +17,25 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map.Entry;
 
 /**
  * Represents a network of blocks.
- * 
- * I feel like there ought to be a Network interface, but I'm not sure what it would do.
- * 
+ *
+ * I feel like there ought to be a Network interface, but I'm not sure what it
+ * would do.
+ *
  * @author erhannis
  */
 public class VJCSPNetwork implements Drawable {
+
   public HashSet<ProcessBlock> blocks = new HashSet<>();
   public HashSet<PlainChannelConnection> connections = new HashSet<>();
   public transient HashMap<Terminal, PlainChannelConnection> t2c = new HashMap<>();
 
   protected TransformChain transformChain = new TransformChain(new AffineTransform(), null);
-  
+
   @Override
   public void draw0(Graphics2D g, Color colorOverride) {
     AffineTransform prevTransform = g.getTransform();
@@ -50,23 +53,22 @@ public class VJCSPNetwork implements Drawable {
   public Point2D.Double getCenter() {
     return new Point2D.Double(0, 0);
   }
-  
+
   @Override
   public TransformChain getTransformChain() {
     return transformChain;
   }
-  
+
   /**
-   * Currently implemented:
-   *   PlainOutputTerminal -> PlainInputTerminal
-   * 
-   * Assumes that both terminals are descendants of this network.
-   * System behavior is undefined otherwise.
-   * 
+   * Currently implemented: PlainOutputTerminal -> PlainInputTerminal
+   *
+   * Assumes that both terminals are descendants of this network. System
+   * behavior is undefined otherwise.
+   *
    * //TODO Extract to...uh, where, actually?
-   * 
+   *
    * @param a
-   * @param b 
+   * @param b
    */
   public void connect(Terminal a, Terminal b) {
     if (a instanceof PlainOutputTerminal && b instanceof PlainInputTerminal) {
@@ -86,12 +88,12 @@ public class VJCSPNetwork implements Drawable {
         }
       } else if (t2c.containsKey(b)) {
         // Add A to B's Connection
-          PlainChannelConnection connection = t2c.get(b);
-          connection.addFromTerminal(a);
-          t2c.put(a, connection);
+        PlainChannelConnection connection = t2c.get(b);
+        connection.addFromTerminal(a);
+        t2c.put(a, connection);
       } else {
         // Create connection with both A and B
-        PlainChannelConnection connection = new PlainChannelConnection((PlainOutputTerminal)a, (PlainInputTerminal)b);
+        PlainChannelConnection connection = new PlainChannelConnection((PlainOutputTerminal) a, (PlainInputTerminal) b);
         connections.add(connection);
         t2c.put(a, connection);
         t2c.put(b, connection);
@@ -100,13 +102,29 @@ public class VJCSPNetwork implements Drawable {
       throw new IllegalArgumentException("Unhandled terminal type-pair (" + a + ", " + b + ")");
     }
   }
-  
+
   /**
    * //TODO Extract?
-   * @param t 
+   *
+   * @param t
    */
   public void disconnect(Terminal t) {
-    throw new RuntimeException("Not yet implemented");
+    Iterator<PlainChannelConnection> connIter = connections.iterator();
+    while (connIter.hasNext()) {
+      Connection c = connIter.next();
+      if (c.removeTerminal(t)) {
+        // Delete connection
+        Iterator<Entry<Terminal, PlainChannelConnection>> entryIter = t2c.entrySet().iterator();
+        while (entryIter.hasNext()) {
+          Entry<Terminal, PlainChannelConnection> entry = entryIter.next();
+          if (c.equals(entry.getValue())) {
+            entryIter.remove();
+          }
+        }
+        connIter.remove();
+      }
+    }
+    t2c.remove(t);
   }
 
   @Override

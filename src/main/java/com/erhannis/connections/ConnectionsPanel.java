@@ -85,9 +85,10 @@ public class ConnectionsPanel extends javax.swing.JPanel {
     /**/
     //TODO Move to MainFrame?
     ConnectionsPanel pd = this;
-    Holder<Point2D> startPoint = new Holder<>(null);
-    Holder<Point2D> lastPoint = new Holder<>(null);
+    Holder<Point2D> dragStartPoint = new Holder<>(null);
+    Holder<Point2D> dragLastPoint = new Holder<>(null);
     Holder<Mode> dragMode = new Holder<>(null);
+    Holder<Terminal> dragFromTerminal = new Holder<>(null);
     pd.addMouseListener(new MouseListener() {
       @Override
       public void mouseClicked(MouseEvent e) {
@@ -115,13 +116,7 @@ public class ConnectionsPanel extends javax.swing.JPanel {
 
             if (picked != null) {
               changed = true;
-              Iterator<PlainChannelConnection> iter = network.connections.iterator();
-              while (iter.hasNext()) {
-                Connection c = iter.next();
-                if (c.removeTerminal(picked)) {
-                  iter.remove();
-                }
-              }
+              network.disconnect(picked);
             }
             break;
           }
@@ -148,8 +143,8 @@ public class ConnectionsPanel extends javax.swing.JPanel {
         System.out.println("press");
         changed = true;
         Point2D m = pd.ati.transform(new Point2D.Double(e.getX(), e.getY()), null);
-        startPoint.value = m;
-        lastPoint.value = m;
+        dragStartPoint.value = m;
+        dragLastPoint.value = m;
         dragMode.value = getMode(e);
         switch (dragMode.value) {
           case NOTHING: //???
@@ -159,6 +154,8 @@ public class ConnectionsPanel extends javax.swing.JPanel {
           }
           case SHIFT_ONLY: //???
           {
+            dragFromTerminal.value = pickTerminal(m);
+            //TODO Highlight acceptable targets
             break;
           }
           case CTRL_ONLY: //???
@@ -177,9 +174,41 @@ public class ConnectionsPanel extends javax.swing.JPanel {
         Point2D m = pd.ati.transform(new Point2D.Double(e.getX(), e.getY()), null);
         //selectedBlocks.clear();
 
-        startPoint.value = null;
-        lastPoint.value = null;
+        if (dragMode.value != null) {
+          switch (dragMode.value) {
+            case NOTHING: //???
+            {
+              break;
+            }
+            case SHIFT_ONLY: // Connect terminal
+            {
+              Terminal picked = pickTerminal(m);
+              if (dragFromTerminal.value != null && picked != null) {
+                changed = true;
+                //TODO Currently doesn't check if has existing conflicting connections
+                try {
+                  if (dragFromTerminal.value.canConnectTo(picked)) {
+                    network.connect(dragFromTerminal.value, picked);
+                  }
+                } catch (IllegalArgumentException ex) {
+                  ex.printStackTrace();
+                }
+              }
+              break;
+            }
+            case CTRL_ONLY: //???
+            {
+              break;
+            }
+            default:
+            // TODO Log or something?
+          }
+        }
+
+        dragStartPoint.value = null;
+        dragLastPoint.value = null;
         dragMode.value = null;
+        dragFromTerminal.value = null;
 
         doRepaint();
       }
@@ -208,12 +237,12 @@ public class ConnectionsPanel extends javax.swing.JPanel {
         switch (dragMode.value) {
           case NOTHING: // Move
           {
-            if (lastPoint.value != null) {
+            if (dragLastPoint.value != null) {
               for (Block b : selectedBlocks) {
                 if (b instanceof Drawable) {
                   Drawable d = (Drawable) b;
                   //TODO May not take into account parent transforms
-                  d.getTransformChain().transform.translate(m.getX() - lastPoint.value.getX(), m.getY() - lastPoint.value.getY());
+                  d.getTransformChain().transform.translate(m.getX() - dragLastPoint.value.getX(), m.getY() - dragLastPoint.value.getY());
                 }
               }
             }
@@ -221,13 +250,13 @@ public class ConnectionsPanel extends javax.swing.JPanel {
           }
           case SHIFT_ONLY: // Connect terminal
           {
-            Terminal picked = pickTerminal(m);
-
-            //network.connections.stream().filter(c -> c.)
-            changed = true;
-            //TODO DO
-            throw new RuntimeException("Not yet implemented");
-            //break;
+//            Terminal picked = pickTerminal(m);
+//
+//            //network.connections.stream().filter(c -> c.)
+//            changed = true;
+//            //TODO DO
+//            throw new RuntimeException("Not yet implemented");
+            break;
           }
           case CTRL_ONLY: // +- Rectangular selection
           {
@@ -239,7 +268,7 @@ public class ConnectionsPanel extends javax.swing.JPanel {
           // TODO Log or something?
         }
 
-        lastPoint.value = m;
+        dragLastPoint.value = m;
         doRepaint();
       }
 
