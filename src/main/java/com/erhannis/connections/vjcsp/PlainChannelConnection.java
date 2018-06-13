@@ -52,6 +52,19 @@ public class PlainChannelConnection implements Connection, Drawable {
   }
 
   @Override
+  public boolean removeTerminal(Terminal t) {
+    outputTerminals.remove(t);
+    inputTerminals.remove(t);
+    if (outputTerminals.isEmpty() || inputTerminals.isEmpty()) {
+      outputTerminals.clear();
+      inputTerminals.clear();
+      return true;
+    } else {
+      return false;
+    }
+  }
+  
+  @Override
   public void draw0(Graphics2D g, Color colorOverride) {
     Point2D.Double center = getCenter();
     Point2D.Double pt = new Point2D.Double();

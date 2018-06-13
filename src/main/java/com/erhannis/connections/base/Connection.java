@@ -16,4 +16,12 @@ public interface Connection {
   
   public void addFromTerminal(Terminal t);
   public void addToTerminal(Terminal t);
+
+  /**
+   * Remove terminal from connection.  Returns true iff this erased the connection
+   * (such as being the last input terminal or last output terminal).
+   * @param t
+   * @return
+   */
+  public boolean removeTerminal(Terminal t); //TODO Could possibly cause problems?
 }
