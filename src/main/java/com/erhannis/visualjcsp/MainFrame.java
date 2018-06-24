@@ -13,6 +13,8 @@ import com.erhannis.connections.vjcsp.PlainInputTerminal;
 import com.erhannis.connections.vjcsp.PlainOutputTerminal;
 import com.erhannis.connections.vjcsp.ProcessBlock;
 import com.erhannis.connections.vjcsp.VJCSPNetwork;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -34,6 +36,17 @@ import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import jcsp.lang.AltingChannelInput;
+import jcsp.lang.Any2OneChannel;
+import jcsp.lang.CSProcess;
+import jcsp.lang.CSTimer;
+import jcsp.lang.Channel;
+import jcsp.lang.ChannelOutput;
+import jcsp.lang.One2AnyChannel;
+import jcsp.lang.Parallel;
+import jcsp.lang.ProcessManager;
+import jcsp.lang.SharedChannelInput;
+import jcsp.lang.SharedChannelOutput;
 
 /**
  *
@@ -49,8 +62,75 @@ public class MainFrame extends javax.swing.JFrame {
   public MainFrame() {
     initComponents();
 
+    Any2OneChannel keyPressedChannel = Channel.any2one(); //TODO Buffered?
+    One2AnyChannel filterUpdateChannel = Channel.one2any();
+    AltingChannelInput keyPressedChannelIn = keyPressedChannel.in();
+    SharedChannelOutput keyPressedChannelOut = keyPressedChannel.out();
+    SharedChannelInput filterUpdateChannelIn = filterUpdateChannel.in();
+    ChannelOutput filterUpdateChannelOut = filterUpdateChannel.out();
+
+    /**
+     * Keyboard -> block filter<b/>
+     * Keypresses build up, creating a filter that is passed on.<b/>
+     * If a keypress comes in more than FILTER_KEYBOARD_TIMEOUT after the last,
+     * the filter is cleared before adding the keypress.<b/>
+     * ESC clears filter.<b/>
+     */
+    CSProcess keyboardProcess = new CSProcess() {
+      @Override
+      public void run() {
+        CSTimer timer = new CSTimer();
+        long lastPress = -1;
+        StringBuilder sb = new StringBuilder();
+        while (true) {
+          KeyEvent ke = (KeyEvent)keyPressedChannelIn.read();
+          if (timer.read() - lastPress > Settings.FILTER_KEYBOARD_TIMEOUT) {
+            sb.setLength(0);
+          }
+          switch (ke.getKeyChar()) {
+            case KeyEvent.VK_ESCAPE: //TODO SETTING
+              sb.setLength(0);
+              break;
+            default:
+              char c = ke.getKeyChar();
+              if (c != KeyEvent.CHAR_UNDEFINED) {
+                sb.append(c);
+              }
+              break;
+          }
+          filterUpdateChannelOut.write(sb.toString()); //TODO This could mess up the key timings, if blocked.
+          lastPress = timer.read();
+        }
+      }
+    };
+    ProcessManager pm = new ProcessManager(new Parallel(new CSProcess[]{
+      keyboardProcess,
+      () -> {
+        while (true) {
+          String filter = (String)filterUpdateChannelIn.read();
+          jLabel1.setText(filter);
+        }
+      }
+    }));
+    pm.start();
+    
     panel = new ConnectionsPanel();
     jSplitPane1.setRightComponent(panel);
+    
+    this.addKeyListener(new KeyListener() {
+      @Override
+      public void keyTyped(KeyEvent e) {
+        keyPressedChannelOut.write(e);
+      }
+
+      @Override
+      public void keyPressed(KeyEvent e) {
+      }
+
+      @Override
+      public void keyReleased(KeyEvent e) {
+      }
+    });
     
     this.addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent ev) {
@@ -143,19 +223,28 @@ public class MainFrame extends javax.swing.JFrame {
 
     jSplitPane1 = new javax.swing.JSplitPane();
     jPanel1 = new javax.swing.JPanel();
+    jLabel1 = new javax.swing.JLabel();
     jPanel2 = new javax.swing.JPanel();
 
     setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
+
+    jLabel1.setText("jLabel1");
 
     javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
     jPanel1.setLayout(jPanel1Layout);
     jPanel1Layout.setHorizontalGroup(
       jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addGap(0, 100, Short.MAX_VALUE)
+      .addGroup(jPanel1Layout.createSequentialGroup()
+        .addContainerGap()
+        .addComponent(jLabel1)
+        .addContainerGap(44, Short.MAX_VALUE))
     );
     jPanel1Layout.setVerticalGroup(
       jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addGap(0, 300, Short.MAX_VALUE)
+      .addGroup(jPanel1Layout.createSequentialGroup()
+        .addContainerGap()
+        .addComponent(jLabel1)
+        .addContainerGap(273, Short.MAX_VALUE))
     );
 
     jSplitPane1.setLeftComponent(jPanel1);
@@ -223,6 +312,7 @@ public class MainFrame extends javax.swing.JFrame {
   }
 
   // Variables declaration - do not modify//GEN-BEGIN:variables
+  private javax.swing.JLabel jLabel1;
   private javax.swing.JPanel jPanel1;
   private javax.swing.JPanel jPanel2;
   private javax.swing.JSplitPane jSplitPane1;
