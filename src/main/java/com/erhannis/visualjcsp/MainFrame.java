@@ -14,6 +14,7 @@ import com.erhannis.connections.vjcsp.PlainInputTerminal;
 import com.erhannis.connections.vjcsp.PlainOutputTerminal;
 import com.erhannis.connections.vjcsp.ProcessBlock;
 import com.erhannis.connections.vjcsp.VJCSPNetwork;
+import com.erhannis.connections.vjcsp.blocks.SplitterBlock;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.event.KeyEvent;
@@ -30,14 +31,18 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.swing.DefaultListModel;
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import jcsp.lang.AltingChannelInput;
@@ -68,7 +73,7 @@ public class MainFrame extends javax.swing.JFrame {
 
     DefaultListModel<Class<? extends Block>> modelBlock = new DefaultListModel<>();
     listBlocks.setModel(modelBlock);
-    
+
     Any2OneChannel keyPressedChannel = Channel.any2one(); //TODO Buffered?
     One2AnyChannel filterUpdateChannel = Channel.one2any();
     AltingChannelInput keyPressedChannelIn = keyPressedChannel.in();
@@ -90,13 +95,18 @@ public class MainFrame extends javax.swing.JFrame {
         long lastPress = -1;
         StringBuilder sb = new StringBuilder();
         while (true) {
-          KeyEvent ke = (KeyEvent)keyPressedChannelIn.read();
+          KeyEvent ke = (KeyEvent) keyPressedChannelIn.read();
           if (timer.read() - lastPress > Settings.FILTER_KEYBOARD_TIMEOUT) {
             sb.setLength(0);
           }
           switch (ke.getKeyChar()) {
             case KeyEvent.VK_ESCAPE: //TODO SETTING
               sb.setLength(0);
+              break;
+            case KeyEvent.VK_BACK_SPACE:
+              if (sb.length() > 0) {
+                sb.setLength(sb.length() - 1);
+              }
               break;
             default:
               char c = ke.getKeyChar();
@@ -114,19 +124,34 @@ public class MainFrame extends javax.swing.JFrame {
       keyboardProcess,
       () -> {
         while (true) {
-          String filter = (String)filterUpdateChannelIn.read();
-          lFilter.setText(filter);
-          //TODO Get a list of blocks; filter them
-          modelBlock.clear();
-          modelBlock.addElement(FileProcessBlock.class);
+          String filter = (String) filterUpdateChannelIn.read();
+          List<Class<? extends Block>> blocks = getBlocks();
+          List<Class<? extends Block>> filteredBlocks;
+          if (filter.startsWith("/")) {
+            // Regex
+            //TODO Make case insensitive?  Optionize?
+            filteredBlocks = blocks.stream().filter(c -> c.toString().matches(".*" + filter.substring(1) + ".*")).collect(Collectors.toList());
+          } else {
+            filteredBlocks = blocks.stream().filter(c -> c.toString().contains(filter)).collect(Collectors.toList());
+          }
+          System.out.println("filter: " + filter + " -> " + filteredBlocks.size());
+
+          //TODO invokeAndWait?
+          SwingUtilities.invokeLater(() -> {
+            lFilter.setText(filter);
+            modelBlock.clear();
+            for (Class<? extends Block> block : filteredBlocks) {
+              modelBlock.addElement(block);
+            }
+          });
         }
       }
     }));
     pm.start();
-    
+
     panel = new ConnectionsPanel();
     jSplitPane1.setRightComponent(panel);
-    
+
     this.addKeyListener(new KeyListener() {
       @Override
       public void keyTyped(KeyEvent e) {
@@ -141,7 +166,7 @@ public class MainFrame extends javax.swing.JFrame {
       public void keyReleased(KeyEvent e) {
       }
     });
-    
+
     this.addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent ev) {
         if (hasChanged()) {
@@ -216,22 +241,17 @@ public class MainFrame extends javax.swing.JFrame {
     System.err.println("Implement hasChanged");
     return false;
   }
-  
+
   private void saveNetwork() {
     //TODO Do
     System.err.println("Implement saveNetwork");
   }
 
-  private void disableKeyboardForComponent(Component... components) {
-    for (Component c : components) {
-        if (c instanceof Container) {
-            disableKeyboardForComponent(((Container) c).getComponents());
-        }
-        for (KeyListener l : c.getKeyListeners()) {
-            c.removeKeyListener(l);
-        }
-    }
-}  
+  private List<Class<? extends Block>> getBlocks() {
+    //TODO Make dynamic
+    return Arrays.asList(FileProcessBlock.class, SplitterBlock.class);
+  }
+
   /**
    * This method is called from within the constructor to initialize the form.
    * WARNING: Do NOT modify this code. The content of this method is always
@@ -250,9 +270,10 @@ public class MainFrame extends javax.swing.JFrame {
 
     setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
 
-    jSplitPane1.setDividerLocation(200);
+    jSplitPane1.setDividerLocation(500);
 
     lFilter.setText("(Filter)");
+    lFilter.setToolTipText("Block filter.  Start with \"/\" to use regex.");
 
     listBlocks.setModel(new javax.swing.AbstractListModel() {
       String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
@@ -271,7 +292,7 @@ public class MainFrame extends javax.swing.JFrame {
       .addGroup(jPanel1Layout.createSequentialGroup()
         .addContainerGap()
         .addComponent(lFilter)
-        .addContainerGap(143, Short.MAX_VALUE))
+        .addContainerGap(443, Short.MAX_VALUE))
       .addComponent(jScrollPane1)
     );
     jPanel1Layout.setVerticalGroup(
@@ -280,7 +301,7 @@ public class MainFrame extends javax.swing.JFrame {
         .addContainerGap()
         .addComponent(lFilter)
         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 401, Short.MAX_VALUE))
+        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 619, Short.MAX_VALUE))
     );
 
     jSplitPane1.setLeftComponent(jPanel1);
@@ -289,11 +310,11 @@ public class MainFrame extends javax.swing.JFrame {
     jPanel2.setLayout(jPanel2Layout);
     jPanel2Layout.setHorizontalGroup(
       jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addGap(0, 451, Short.MAX_VALUE)
+      .addGap(0, 544, Short.MAX_VALUE)
     );
     jPanel2Layout.setVerticalGroup(
       jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addGap(0, 440, Short.MAX_VALUE)
+      .addGap(0, 658, Short.MAX_VALUE)
     );
 
     jSplitPane1.setRightComponent(jPanel2);
@@ -302,7 +323,7 @@ public class MainFrame extends javax.swing.JFrame {
     getContentPane().setLayout(layout);
     layout.setHorizontalGroup(
       layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addComponent(jSplitPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 660, Short.MAX_VALUE)
+      .addComponent(jSplitPane1)
     );
     layout.setVerticalGroup(
       layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)

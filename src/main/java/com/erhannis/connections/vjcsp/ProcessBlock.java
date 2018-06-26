@@ -14,6 +14,7 @@ import com.erhannis.connections.base.TransformChain;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -40,8 +41,6 @@ public abstract class ProcessBlock implements Block, Drawable, Labeled {
     drawTerminals(g, colorOverride);
   }
 
-  protected abstract void draw1(Graphics2D g, Color colorOverride);
-  
   protected void drawTerminals(Graphics2D g, Color colorOverride) {
     LinkedHashSet<PlainInputTerminal> inputTerminals = new LinkedHashSet<>();
     LinkedHashSet<PlainOutputTerminal> outputTerminals = new LinkedHashSet<>();
@@ -104,5 +103,17 @@ public abstract class ProcessBlock implements Block, Drawable, Labeled {
   @Override
   public Collection<Terminal> getTerminals() {
     return new LinkedHashSet<Terminal>(terminals);
+  }
+  
+  //TODO The following two methods, I'd made abstract here and implemented in a subclass - possibly revert to that
+  //protected abstract void draw1(Graphics2D g, Color colorOverride);
+  protected void draw1(Graphics2D g, Color colorOverride) {
+    g.setColor(colorOverride != null ? colorOverride : getColor());
+    g.drawRect(LEFT, TOP, WIDTH, HEIGHT);
+  }
+
+  public Point2D.Double getCenter() {
+    //TODO Static or something?
+    return new Point2D.Double(0, 0);
   }
 }

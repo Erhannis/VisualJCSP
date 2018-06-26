@@ -21,18 +21,6 @@ public class FileProcessBlock extends ProcessBlock {
     super(label, transformChain);
   }
   
-  @Override
-  protected void draw1(Graphics2D g, Color colorOverride) {
-    g.setColor(colorOverride != null ? colorOverride : getColor());
-    g.drawRect(LEFT, TOP, WIDTH, HEIGHT);
-  }
-
-  @Override
-  public Point2D.Double getCenter() {
-    //TODO Static or something?
-    return new Point2D.Double(0, 0);
-  }
-
   public PlainInputTerminal addPlainInputTerminal(String label, IntOrEventualClass type) {
     // If the AffineTransform doesn't get set before the terminal is drawn, an error will be thrown - as it should.
     return addTerminal(new PlainInputTerminal(label, new TransformChain(null, transformChain), type));
