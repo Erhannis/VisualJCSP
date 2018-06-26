@@ -9,9 +9,13 @@ import com.erhannis.connections.base.Block;
 import com.erhannis.connections.base.Connection;
 import com.erhannis.connections.base.Drawable;
 import com.erhannis.connections.base.Terminal;
+import com.erhannis.connections.base.TransformChain;
+import com.erhannis.connections.vjcsp.FileProcessBlock;
+import com.erhannis.connections.vjcsp.IntOrEventualClass;
 import com.erhannis.connections.vjcsp.PlainChannelConnection;
 import com.erhannis.connections.vjcsp.ProcessBlock;
 import com.erhannis.connections.vjcsp.VJCSPNetwork;
+import com.erhannis.connections.vjcsp.blocks.SplitterBlock;
 import com.erhannis.mathnstuff.Holder;
 import com.erhannis.mathnstuff.MeMath;
 import java.awt.BasicStroke;
@@ -19,6 +23,9 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -39,6 +46,8 @@ import java.util.LinkedHashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.TransferHandler;
 
 /**
  *
@@ -324,6 +333,40 @@ public class ConnectionsPanel extends javax.swing.JPanel {
     );
 
     /**/
+    
+    this.setTransferHandler(new TransferHandler() {
+      public boolean canImport(TransferHandler.TransferSupport support) {
+        if (!support.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+          return false;
+        }
+        return true;
+      }
+
+      public boolean importData(TransferHandler.TransferSupport support) {
+        if (!canImport(support)) {
+          return false;
+        }
+
+        Transferable transferable = support.getTransferable();
+        String data;
+        try {
+          data = (String) transferable.getTransferData(DataFlavor.stringFlavor);
+        } catch (Exception e) {
+          return false;
+        }
+
+        TransferHandler.DropLocation dl = support.getDropLocation();
+        Point p = dl.getDropPoint();
+        Point2D m = pd.ati.transform(new Point2D.Double(p.getX(), p.getY()), null);
+
+        System.err.println("NOTICE Don't forget to fix the block dragging imports"); //TODO Fix
+        SplitterBlock generate1 = new SplitterBlock("Splitter", new TransformChain(AffineTransform.getTranslateInstance(m.getX(), m.getY()), network.getTransformChain()), new IntOrEventualClass(), 4);
+        network.blocks.add(generate1);
+        doRepaint();
+        
+        return true;
+      }
+    });
   }
 
   protected static Mode getMode(InputEvent e) {

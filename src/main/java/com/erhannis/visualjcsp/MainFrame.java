@@ -281,6 +281,7 @@ public class MainFrame extends javax.swing.JFrame {
       public Object getElementAt(int i) { return strings[i]; }
     });
     listBlocks.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+    listBlocks.setDragEnabled(true);
     listBlocks.setFocusable(false);
     listBlocks.setRequestFocusEnabled(false);
     jScrollPane1.setViewportView(listBlocks);
