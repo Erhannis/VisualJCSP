@@ -6,6 +6,7 @@
 package com.erhannis.visualjcsp;
 
 import com.erhannis.connections.ConnectionsPanel;
+import com.erhannis.connections.base.Block;
 import com.erhannis.connections.base.TransformChain;
 import com.erhannis.connections.vjcsp.FileProcessBlock;
 import com.erhannis.connections.vjcsp.IntOrEventualClass;
@@ -13,6 +14,8 @@ import com.erhannis.connections.vjcsp.PlainInputTerminal;
 import com.erhannis.connections.vjcsp.PlainOutputTerminal;
 import com.erhannis.connections.vjcsp.ProcessBlock;
 import com.erhannis.connections.vjcsp.VJCSPNetwork;
+import java.awt.Component;
+import java.awt.Container;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -33,6 +36,7 @@ import java.util.HashSet;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.DefaultListModel;
 import javax.swing.JOptionPane;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -62,6 +66,9 @@ public class MainFrame extends javax.swing.JFrame {
   public MainFrame() {
     initComponents();
 
+    DefaultListModel<Class<? extends Block>> modelBlock = new DefaultListModel<>();
+    listBlocks.setModel(modelBlock);
+    
     Any2OneChannel keyPressedChannel = Channel.any2one(); //TODO Buffered?
     One2AnyChannel filterUpdateChannel = Channel.one2any();
     AltingChannelInput keyPressedChannelIn = keyPressedChannel.in();
@@ -108,7 +115,10 @@ public class MainFrame extends javax.swing.JFrame {
       () -> {
         while (true) {
           String filter = (String)filterUpdateChannelIn.read();
-          jLabel1.setText(filter);
+          lFilter.setText(filter);
+          //TODO Get a list of blocks; filter them
+          modelBlock.clear();
+          modelBlock.addElement(FileProcessBlock.class);
         }
       }
     }));
@@ -211,7 +221,17 @@ public class MainFrame extends javax.swing.JFrame {
     //TODO Do
     System.err.println("Implement saveNetwork");
   }
-  
+
+  private void disableKeyboardForComponent(Component... components) {
+    for (Component c : components) {
+        if (c instanceof Container) {
+            disableKeyboardForComponent(((Container) c).getComponents());
+        }
+        for (KeyListener l : c.getKeyListeners()) {
+            c.removeKeyListener(l);
+        }
+    }
+}  
   /**
    * This method is called from within the constructor to initialize the form.
    * WARNING: Do NOT modify this code. The content of this method is always
@@ -223,12 +243,26 @@ public class MainFrame extends javax.swing.JFrame {
 
     jSplitPane1 = new javax.swing.JSplitPane();
     jPanel1 = new javax.swing.JPanel();
-    jLabel1 = new javax.swing.JLabel();
+    lFilter = new javax.swing.JLabel();
+    jScrollPane1 = new javax.swing.JScrollPane();
+    listBlocks = new javax.swing.JList();
     jPanel2 = new javax.swing.JPanel();
 
     setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
 
-    jLabel1.setText("jLabel1");
+    jSplitPane1.setDividerLocation(200);
+
+    lFilter.setText("(Filter)");
+
+    listBlocks.setModel(new javax.swing.AbstractListModel() {
+      String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
+      public int getSize() { return strings.length; }
+      public Object getElementAt(int i) { return strings[i]; }
+    });
+    listBlocks.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+    listBlocks.setFocusable(false);
+    listBlocks.setRequestFocusEnabled(false);
+    jScrollPane1.setViewportView(listBlocks);
 
     javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
     jPanel1.setLayout(jPanel1Layout);
@@ -236,15 +270,17 @@ public class MainFrame extends javax.swing.JFrame {
       jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
       .addGroup(jPanel1Layout.createSequentialGroup()
         .addContainerGap()
-        .addComponent(jLabel1)
-        .addContainerGap(44, Short.MAX_VALUE))
+        .addComponent(lFilter)
+        .addContainerGap(143, Short.MAX_VALUE))
+      .addComponent(jScrollPane1)
     );
     jPanel1Layout.setVerticalGroup(
       jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
       .addGroup(jPanel1Layout.createSequentialGroup()
         .addContainerGap()
-        .addComponent(jLabel1)
-        .addContainerGap(273, Short.MAX_VALUE))
+        .addComponent(lFilter)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 401, Short.MAX_VALUE))
     );
 
     jSplitPane1.setLeftComponent(jPanel1);
@@ -253,11 +289,11 @@ public class MainFrame extends javax.swing.JFrame {
     jPanel2.setLayout(jPanel2Layout);
     jPanel2Layout.setHorizontalGroup(
       jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addGap(0, 291, Short.MAX_VALUE)
+      .addGap(0, 451, Short.MAX_VALUE)
     );
     jPanel2Layout.setVerticalGroup(
       jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addGap(0, 300, Short.MAX_VALUE)
+      .addGap(0, 440, Short.MAX_VALUE)
     );
 
     jSplitPane1.setRightComponent(jPanel2);
@@ -266,7 +302,7 @@ public class MainFrame extends javax.swing.JFrame {
     getContentPane().setLayout(layout);
     layout.setHorizontalGroup(
       layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addComponent(jSplitPane1)
+      .addComponent(jSplitPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 660, Short.MAX_VALUE)
     );
     layout.setVerticalGroup(
       layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -312,9 +348,11 @@ public class MainFrame extends javax.swing.JFrame {
   }
 
   // Variables declaration - do not modify//GEN-BEGIN:variables
-  private javax.swing.JLabel jLabel1;
   private javax.swing.JPanel jPanel1;
   private javax.swing.JPanel jPanel2;
+  private javax.swing.JScrollPane jScrollPane1;
   private javax.swing.JSplitPane jSplitPane1;
+  private javax.swing.JLabel lFilter;
+  private javax.swing.JList listBlocks;
   // End of variables declaration//GEN-END:variables
 }
