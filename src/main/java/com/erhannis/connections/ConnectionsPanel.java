@@ -59,6 +59,8 @@ public class ConnectionsPanel extends javax.swing.JPanel {
 
     NOTHING, SHIFT_ONLY, CTRL_ONLY, OTHER;
   }
+  
+  public static final DataFlavor CLASS_FLAVOR = new DataFlavor(Class.class, "Java Class");
 
   private static final double SCALE_INCREMENT = 1.1;
   private static final double VIEW_PRESCALE = 1;
@@ -250,8 +252,9 @@ public class ConnectionsPanel extends javax.swing.JPanel {
               for (Block b : selectedBlocks) {
                 if (b instanceof Drawable) {
                   Drawable d = (Drawable) b;
-                  //TODO May not take into account parent transforms
-                  d.getTransformChain().transform.translate(m.getX() - dragLastPoint.value.getX(), m.getY() - dragLastPoint.value.getY());
+                  //TODO May not take into account parent transforms properly
+                  AffineTransform worldTransform = d.getTransformChain().computeWorldTransform();
+                  d.getTransformChain().transform.translate((m.getX() - dragLastPoint.value.getX()) / worldTransform.getScaleX(), (m.getY() - dragLastPoint.value.getY()) / worldTransform.getScaleY());
                 }
               }
             }
@@ -336,7 +339,7 @@ public class ConnectionsPanel extends javax.swing.JPanel {
     
     this.setTransferHandler(new TransferHandler() {
       public boolean canImport(TransferHandler.TransferSupport support) {
-        if (!support.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+        if (!support.isDataFlavorSupported(CLASS_FLAVOR)) {
           return false;
         }
         return true;
@@ -348,9 +351,9 @@ public class ConnectionsPanel extends javax.swing.JPanel {
         }
 
         Transferable transferable = support.getTransferable();
-        String data;
+        Class data;
         try {
-          data = (String) transferable.getTransferData(DataFlavor.stringFlavor);
+          data = (Class) transferable.getTransferData(CLASS_FLAVOR);
         } catch (Exception e) {
           return false;
         }
@@ -359,6 +362,8 @@ public class ConnectionsPanel extends javax.swing.JPanel {
         Point p = dl.getDropPoint();
         Point2D m = pd.ati.transform(new Point2D.Double(p.getX(), p.getY()), null);
 
+        System.out.println(data);
+        //See, now here we should invoke some method of Class<Block> or something.;
         System.err.println("NOTICE Don't forget to fix the block dragging imports"); //TODO Fix
         SplitterBlock generate1 = new SplitterBlock("Splitter", new TransformChain(AffineTransform.getTranslateInstance(m.getX(), m.getY()), network.getTransformChain()), new IntOrEventualClass(), 4);
         network.blocks.add(generate1);

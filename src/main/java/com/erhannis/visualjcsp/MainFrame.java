@@ -15,8 +15,14 @@ import com.erhannis.connections.vjcsp.PlainOutputTerminal;
 import com.erhannis.connections.vjcsp.ProcessBlock;
 import com.erhannis.connections.vjcsp.VJCSPNetwork;
 import com.erhannis.connections.vjcsp.blocks.SplitterBlock;
+import com.erhannis.connections.vjcsp.blocks.UDPReceiverBlock;
+import com.erhannis.connections.vjcsp.blocks.UDPTransmitterBlock;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -40,9 +46,12 @@ import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import javax.activation.DataHandler;
 import javax.swing.DefaultListModel;
+import javax.swing.JComponent;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
+import javax.swing.TransferHandler;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import jcsp.lang.AltingChannelInput;
@@ -73,6 +82,53 @@ public class MainFrame extends javax.swing.JFrame {
 
     DefaultListModel<Class<? extends Block>> modelBlock = new DefaultListModel<>();
     listBlocks.setModel(modelBlock);
+    listBlocks.setTransferHandler(new TransferHandler() {
+      class ClassTransferable implements Transferable {
+        public final Class clazz;
+        
+        public ClassTransferable(Class clazz) {
+          this.clazz = clazz;
+        }
+        
+        @Override
+        public DataFlavor[] getTransferDataFlavors() {
+          return new DataFlavor[]{ConnectionsPanel.CLASS_FLAVOR};
+        }
+
+        @Override
+        public boolean isDataFlavorSupported(DataFlavor flavor) {
+          if (ConnectionsPanel.CLASS_FLAVOR.equals(flavor) || DataFlavor.stringFlavor.equals(flavor)) {
+            return true;
+          } else {
+            return false;
+          }
+        }
+
+        @Override
+        public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException {
+          if (ConnectionsPanel.CLASS_FLAVOR.equals(flavor)) {
+            return clazz;
+          } else {
+            throw new UnsupportedFlavorException(flavor);
+          }
+        }
+      }
+
+      @Override
+      public int getSourceActions(JComponent c) {
+        return TransferHandler.COPY;
+      }
+      
+      @Override
+      protected Transferable createTransferable(JComponent c) {
+        return new ClassTransferable((Class)listBlocks.getSelectedValue());//new DataHandler(listBlocks.getSelectedValue(), "application/x-java-object");
+      }
+
+      @Override
+      protected void exportDone(JComponent source, Transferable data, int action) {
+        super.exportDone(source, data, action); //To change body of generated methods, choose Tools | Templates.
+      }
+    });
 
     Any2OneChannel keyPressedChannel = Channel.any2one(); //TODO Buffered?
     One2AnyChannel filterUpdateChannel = Channel.one2any();
@@ -249,7 +305,7 @@ public class MainFrame extends javax.swing.JFrame {
 
   private List<Class<? extends Block>> getBlocks() {
     //TODO Make dynamic
-    return Arrays.asList(FileProcessBlock.class, SplitterBlock.class);
+    return Arrays.asList(FileProcessBlock.class, SplitterBlock.class, UDPReceiverBlock.class, UDPTransmitterBlock.class);
   }
 
   /**

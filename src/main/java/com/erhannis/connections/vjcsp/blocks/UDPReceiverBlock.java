@@ -20,14 +20,11 @@ import java.awt.geom.Point2D;
  *
  * @author erhannis
  */
-public class SplitterBlock extends ProcessBlock implements BlockArchetype {
-  public SplitterBlock(String label, TransformChain transformChain, IntOrEventualClass type, int outs) {
+public class UDPReceiverBlock extends ProcessBlock implements BlockArchetype {
+
+  public UDPReceiverBlock(String label, TransformChain transformChain, int port) {
     super(label, transformChain);
-    this.terminals.add(new PlainInputTerminal("in", new TransformChain(null, transformChain), type));
-    for (int i = 0; i < outs; i++) {
-      //TODO Label: [0,outs), or [1,outs]?
-      this.terminals.add(new PlainOutputTerminal("out " + i, new TransformChain(null, transformChain), type));
-    }
+    this.terminals.add(new PlainOutputTerminal("out", new TransformChain(null, transformChain), new IntOrEventualClass(String.class)));
   }
 
   @Override
