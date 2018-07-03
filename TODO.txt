@@ -1,3 +1,5 @@
+Button you can push from the wiring gui, in visible run mode
+  Other wiring-visible components, like displays or toggle switches
 Add some kind of `compile()` function to the components
 Allow compiling to jar, or running in place
   If run in place, allow debug mode where things are slow and the channels flash when used

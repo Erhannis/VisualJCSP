@@ -363,7 +363,7 @@ public class ConnectionsPanel extends javax.swing.JPanel {
         Point2D m = pd.ati.transform(new Point2D.Double(p.getX(), p.getY()), null);
 
         System.out.println(data);
-        //See, now here we should invoke some method of Class<Block> or something.;
+        See, now here we should invoke some method of Class<Block> or something.;
         System.err.println("NOTICE Don't forget to fix the block dragging imports"); //TODO Fix
         SplitterBlock generate1 = new SplitterBlock("Splitter", new TransformChain(AffineTransform.getTranslateInstance(m.getX(), m.getY()), network.getTransformChain()), new IntOrEventualClass(), 4);
         network.blocks.add(generate1);

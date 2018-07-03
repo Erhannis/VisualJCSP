@@ -15,6 +15,7 @@ import com.erhannis.connections.vjcsp.ProcessBlock;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.Point2D;
+import java.util.HashMap;
 
 /**
  *
@@ -22,14 +23,24 @@ import java.awt.geom.Point2D;
  */
 public class UDPTransmitterBlock extends ProcessBlock implements BlockArchetype {
 
-  public UDPTransmitterBlock(String label, TransformChain transformChain, String hostname, int port) {
+  public UDPTransmitterBlock(boolean isArchetype, String label, TransformChain transformChain) {
     super(label, transformChain);
-    //TODO Make port/host a channel, or part of the message, or something?
-    this.terminals.add(new PlainInputTerminal("in", new TransformChain(null, transformChain), new IntOrEventualClass(String.class)));
   }
 
   @Override
-  public Block create() {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+  public HashMap<String, Class> getParameters() {
+    return new HashMap<String, Class>() {{
+      put("hostname", String.class);
+      put("port", Integer.class);
+    }};
+  }
+
+  @Override
+  public Block createWireform(HashMap<String, Object> params) { //TODO Heck, "transformChain"? "label"?
+    UDPTransmitterBlock block = new UDPTransmitterBlock(false, label, transformChain);
+    //TODO Store params
+    //TODO Make form classes?  Maybe static inner classes?
+    this.terminals.add(new PlainInputTerminal("hostname", new TransformChain(null, transformChain), new IntOrEventualClass(String.class)));
+    this.terminals.add(new PlainInputTerminal("port", new TransformChain(null, transformChain), new IntOrEventualClass(Integer.class)));
   }
 }
