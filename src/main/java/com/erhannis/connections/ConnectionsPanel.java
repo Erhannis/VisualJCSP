@@ -6,6 +6,7 @@
 package com.erhannis.connections;
 
 import com.erhannis.connections.base.Block;
+import com.erhannis.connections.base.BlockArchetype;
 import com.erhannis.connections.base.Connection;
 import com.erhannis.connections.base.Drawable;
 import com.erhannis.connections.base.Terminal;
@@ -40,6 +41,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -60,7 +62,7 @@ public class ConnectionsPanel extends javax.swing.JPanel {
     NOTHING, SHIFT_ONLY, CTRL_ONLY, OTHER;
   }
   
-  public static final DataFlavor CLASS_FLAVOR = new DataFlavor(Class.class, "Java Class");
+  public static final DataFlavor ARCHETYPE_FLAVOR = new DataFlavor(BlockArchetype.class, "BlockArchetype");
 
   private static final double SCALE_INCREMENT = 1.1;
   private static final double VIEW_PRESCALE = 1;
@@ -339,7 +341,7 @@ public class ConnectionsPanel extends javax.swing.JPanel {
     
     this.setTransferHandler(new TransferHandler() {
       public boolean canImport(TransferHandler.TransferSupport support) {
-        if (!support.isDataFlavorSupported(CLASS_FLAVOR)) {
+        if (!support.isDataFlavorSupported(ARCHETYPE_FLAVOR)) {
           return false;
         }
         return true;
@@ -351,9 +353,9 @@ public class ConnectionsPanel extends javax.swing.JPanel {
         }
 
         Transferable transferable = support.getTransferable();
-        Class data;
+        BlockArchetype data;
         try {
-          data = (Class) transferable.getTransferData(CLASS_FLAVOR);
+          data = (BlockArchetype) transferable.getTransferData(ARCHETYPE_FLAVOR);
         } catch (Exception e) {
           return false;
         }
@@ -363,10 +365,11 @@ public class ConnectionsPanel extends javax.swing.JPanel {
         Point2D m = pd.ati.transform(new Point2D.Double(p.getX(), p.getY()), null);
 
         System.out.println(data);
-        See, now here we should invoke some method of Class<Block> or something.;
-        System.err.println("NOTICE Don't forget to fix the block dragging imports"); //TODO Fix
-        SplitterBlock generate1 = new SplitterBlock("Splitter", new TransformChain(AffineTransform.getTranslateInstance(m.getX(), m.getY()), network.getTransformChain()), new IntOrEventualClass(), 4);
-        network.blocks.add(generate1);
+        HashMap<String, Object> params = new HashMap<>();
+        //TODO Request params, in a modal
+        //TODO This cast is dumb, and possibly dangerous
+        ProcessBlock block = (ProcessBlock)data.createWireform(params, "label", new TransformChain(AffineTransform.getTranslateInstance(m.getX(), m.getY()), network.getTransformChain()));
+        network.blocks.add(block);
         doRepaint();
         
         return true;

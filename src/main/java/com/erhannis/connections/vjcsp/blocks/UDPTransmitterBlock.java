@@ -21,26 +21,41 @@ import java.util.HashMap;
  *
  * @author erhannis
  */
-public class UDPTransmitterBlock extends ProcessBlock implements BlockArchetype {
+public class UDPTransmitterBlock extends ProcessBlock {
+  public static class Archetype implements BlockArchetype {
+    @Override
+    public String getName() {
+      return "UDPTransmitterBlock";
+    }    
+    
+    @Override
+    public HashMap<String, Class> getParameters() {
+      HashMap<String, Class> parameters = new HashMap<>();
+      parameters.put("hostname", String.class);
+      parameters.put("port", Integer.class);
+      return parameters;
+    }
 
-  public UDPTransmitterBlock(boolean isArchetype, String label, TransformChain transformChain) {
+    @Override
+    public Block createWireform(HashMap<String, Object> params, String label, TransformChain transformChain) {
+      params = (params != null ? params : new HashMap<String, Object>());
+      UDPTransmitterBlock block = new UDPTransmitterBlock(false, params, label, transformChain);
+      //TODO I feel like this could be consolidated.
+      if (!params.containsKey("hostname")) {
+        block.terminals.add(new PlainInputTerminal("hostname", new TransformChain(null, transformChain), new IntOrEventualClass(String.class)));
+      }
+      if (!params.containsKey("port")) {
+        block.terminals.add(new PlainInputTerminal("port", new TransformChain(null, transformChain), new IntOrEventualClass(Integer.class)));
+      }
+      block.terminals.add(new PlainInputTerminal("msg", new TransformChain(null, transformChain), new IntOrEventualClass(String.class)));
+      return block;
+    }
+  }
+
+  private HashMap<String, Object> params;
+  
+  public UDPTransmitterBlock(boolean isArchetype, HashMap<String, Object> params, String label, TransformChain transformChain) {
     super(label, transformChain);
-  }
-
-  @Override
-  public HashMap<String, Class> getParameters() {
-    return new HashMap<String, Class>() {{
-      put("hostname", String.class);
-      put("port", Integer.class);
-    }};
-  }
-
-  @Override
-  public Block createWireform(HashMap<String, Object> params) { //TODO Heck, "transformChain"? "label"?
-    UDPTransmitterBlock block = new UDPTransmitterBlock(false, label, transformChain);
-    //TODO Store params
-    //TODO Make form classes?  Maybe static inner classes?
-    this.terminals.add(new PlainInputTerminal("hostname", new TransformChain(null, transformChain), new IntOrEventualClass(String.class)));
-    this.terminals.add(new PlainInputTerminal("port", new TransformChain(null, transformChain), new IntOrEventualClass(Integer.class)));
+    this.params = params;
   }
 }

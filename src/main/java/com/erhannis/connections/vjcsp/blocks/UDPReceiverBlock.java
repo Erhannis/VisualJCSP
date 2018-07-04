@@ -15,20 +15,43 @@ import com.erhannis.connections.vjcsp.ProcessBlock;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.Point2D;
+import java.util.HashMap;
 
 /**
  *
  * @author erhannis
  */
-public class UDPReceiverBlock extends ProcessBlock implements BlockArchetype {
+public class UDPReceiverBlock extends ProcessBlock {
+  public static class Archetype implements BlockArchetype {
+    @Override
+    public String getName() {
+      return "UDPReceiverBlock";
+    }    
+    
+    @Override
+    public HashMap<String, Class> getParameters() {
+      HashMap<String, Class> parameters = new HashMap<>();
+      parameters.put("port", Integer.class);
+      return parameters;
+    }
 
-  public UDPReceiverBlock(String label, TransformChain transformChain, int port) {
-    super(label, transformChain);
-    this.terminals.add(new PlainOutputTerminal("out", new TransformChain(null, transformChain), new IntOrEventualClass(String.class)));
+    @Override
+    public Block createWireform(HashMap<String, Object> params, String label, TransformChain transformChain) {
+      params = (params != null ? params : new HashMap<String, Object>());
+      UDPReceiverBlock block = new UDPReceiverBlock(false, params, label, transformChain);
+      //TODO I feel like this could be consolidated.
+      if (!params.containsKey("port")) {
+        block.terminals.add(new PlainInputTerminal("port", new TransformChain(null, transformChain), new IntOrEventualClass(Integer.class)));
+      }
+      block.terminals.add(new PlainOutputTerminal("msg", new TransformChain(null, transformChain), new IntOrEventualClass(String.class)));
+      return block;
+    }
   }
 
-  @Override
-  public Block create() {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+  private HashMap<String, Object> params;
+  
+  public UDPReceiverBlock(boolean isArchetype, HashMap<String, Object> params, String label, TransformChain transformChain) {
+    super(label, transformChain);
+    this.params = params;
   }
 }

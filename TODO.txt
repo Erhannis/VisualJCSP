@@ -12,3 +12,4 @@ When connecting terminal, highlight acceptable targets
 Make block list dynamic
 Blocks that accept `T...` connections?  Like, when you're dragging a connection, suddenly it has an extra terminal?  (What about dragging from?  Perhaps when you hold shift it shows up?)
 Constructor parameter terminals?
+Sort out the Block vs ProcessBlock spatial dilemma!

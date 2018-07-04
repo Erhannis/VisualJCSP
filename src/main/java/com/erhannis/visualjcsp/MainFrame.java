@@ -7,6 +7,7 @@ package com.erhannis.visualjcsp;
 
 import com.erhannis.connections.ConnectionsPanel;
 import com.erhannis.connections.base.Block;
+import com.erhannis.connections.base.BlockArchetype;
 import com.erhannis.connections.base.TransformChain;
 import com.erhannis.connections.vjcsp.FileProcessBlock;
 import com.erhannis.connections.vjcsp.IntOrEventualClass;
@@ -80,24 +81,24 @@ public class MainFrame extends javax.swing.JFrame {
   public MainFrame() {
     initComponents();
 
-    DefaultListModel<Class<? extends Block>> modelBlock = new DefaultListModel<>();
+    DefaultListModel<BlockArchetype> modelBlock = new DefaultListModel<>();
     listBlocks.setModel(modelBlock);
     listBlocks.setTransferHandler(new TransferHandler() {
-      class ClassTransferable implements Transferable {
-        public final Class clazz;
+      class ArchetypeTransferable implements Transferable {
+        public final BlockArchetype archetype;
         
-        public ClassTransferable(Class clazz) {
-          this.clazz = clazz;
+        public ArchetypeTransferable(BlockArchetype archetype) {
+          this.archetype = archetype;
         }
         
         @Override
         public DataFlavor[] getTransferDataFlavors() {
-          return new DataFlavor[]{ConnectionsPanel.CLASS_FLAVOR};
+          return new DataFlavor[]{ConnectionsPanel.ARCHETYPE_FLAVOR};
         }
 
         @Override
         public boolean isDataFlavorSupported(DataFlavor flavor) {
-          if (ConnectionsPanel.CLASS_FLAVOR.equals(flavor) || DataFlavor.stringFlavor.equals(flavor)) {
+          if (ConnectionsPanel.ARCHETYPE_FLAVOR.equals(flavor) || DataFlavor.stringFlavor.equals(flavor)) {
             return true;
           } else {
             return false;
@@ -106,8 +107,8 @@ public class MainFrame extends javax.swing.JFrame {
 
         @Override
         public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException {
-          if (ConnectionsPanel.CLASS_FLAVOR.equals(flavor)) {
-            return clazz;
+          if (ConnectionsPanel.ARCHETYPE_FLAVOR.equals(flavor)) {
+            return archetype;
           } else {
             throw new UnsupportedFlavorException(flavor);
           }
@@ -121,7 +122,7 @@ public class MainFrame extends javax.swing.JFrame {
       
       @Override
       protected Transferable createTransferable(JComponent c) {
-        return new ClassTransferable((Class)listBlocks.getSelectedValue());//new DataHandler(listBlocks.getSelectedValue(), "application/x-java-object");
+        return new ArchetypeTransferable((BlockArchetype)listBlocks.getSelectedValue());//new DataHandler(listBlocks.getSelectedValue(), "application/x-java-object");
       }
 
       @Override
@@ -181,23 +182,27 @@ public class MainFrame extends javax.swing.JFrame {
       () -> {
         while (true) {
           String filter = (String) filterUpdateChannelIn.read();
-          List<Class<? extends Block>> blocks = getBlocks();
-          List<Class<? extends Block>> filteredBlocks;
+          List<BlockArchetype> archetypes = getArchetypes();
+          List<BlockArchetype> filteredArchetypes;
           if (filter.startsWith("/")) {
             // Regex
             //TODO Make case insensitive?  Optionize?
-            filteredBlocks = blocks.stream().filter(c -> c.toString().matches(".*" + filter.substring(1) + ".*")).collect(Collectors.toList());
+            filteredArchetypes = archetypes.stream().filter(c -> c.getName().matches(".*" + filter.substring(1) + ".*")).collect(Collectors.toList());
           } else {
-            filteredBlocks = blocks.stream().filter(c -> c.toString().contains(filter)).collect(Collectors.toList());
+            if (filter.toLowerCase().equals(filter)) {
+              filteredArchetypes = archetypes.stream().filter(c -> c.getName().toLowerCase().contains(filter)).collect(Collectors.toList());
+            } else {
+              filteredArchetypes = archetypes.stream().filter(c -> c.getName().contains(filter)).collect(Collectors.toList());
+            }
           }
-          System.out.println("filter: " + filter + " -> " + filteredBlocks.size());
+          System.out.println("filter: " + filter + " -> " + filteredArchetypes.size());
 
           //TODO invokeAndWait?
           SwingUtilities.invokeLater(() -> {
             lFilter.setText(filter);
             modelBlock.clear();
-            for (Class<? extends Block> block : filteredBlocks) {
-              modelBlock.addElement(block);
+            for (BlockArchetype archetype : filteredArchetypes) {
+              modelBlock.addElement(archetype);
             }
           });
         }
@@ -303,9 +308,10 @@ public class MainFrame extends javax.swing.JFrame {
     System.err.println("Implement saveNetwork");
   }
 
-  private List<Class<? extends Block>> getBlocks() {
+  private List<BlockArchetype> getArchetypes() {
     //TODO Make dynamic
-    return Arrays.asList(FileProcessBlock.class, SplitterBlock.class, UDPReceiverBlock.class, UDPTransmitterBlock.class);
+    //TODO FileProcessBlock
+    return Arrays.asList(new SplitterBlock.Archetype(), new UDPReceiverBlock.Archetype(), new UDPTransmitterBlock.Archetype());
   }
 
   /**

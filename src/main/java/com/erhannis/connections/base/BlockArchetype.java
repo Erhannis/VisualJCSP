@@ -12,6 +12,8 @@ import java.util.HashMap;
  * @author erhannis
  */
 public interface BlockArchetype {
+  public String getName();
+  
   /**
    * Returns the possible parameters for `(BlockArchetype).create()`.
    * For example, {"port":java.lang.Integer, "host":java.lang.String}.
@@ -34,12 +36,14 @@ public interface BlockArchetype {
    * 2. Provide a default for the parameter.
    * 3. Throw an IllegalArgumentException.  This is discouraged.
    * 
+   * A null `params` is taken to mean "no parameters given". //TODO Is this sufficiently useful?
+   * 
    * //TODO Make helper class to aid #1?
    * 
    * @param params
    * @return 
    */
-  public Block createWireform(HashMap<String, Object> params);
+  public Block createWireform(HashMap<String, Object> params, String label, TransformChain transformChain); //TODO Should the second two params be here?
   
   //TODO `getBlockType` or something?
 }

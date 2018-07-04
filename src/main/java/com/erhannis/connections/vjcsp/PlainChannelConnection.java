@@ -81,7 +81,7 @@ public class PlainChannelConnection implements Connection, Drawable {
       g.draw(getConnectionPath(center, pt));
     }
     //TODO Draw buffer, etc.
-    System.err.println("NOTICE Don't forget to draw the buffer, etc.");
+    //System.err.println("NOTICE Don't forget to draw the buffer, etc.");
   }
 
   @Override

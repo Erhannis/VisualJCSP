@@ -15,23 +15,47 @@ import com.erhannis.connections.vjcsp.ProcessBlock;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.Point2D;
+import java.util.HashMap;
 
 /**
  *
  * @author erhannis
  */
-public class SplitterBlock extends ProcessBlock implements BlockArchetype {
-  public SplitterBlock(String label, TransformChain transformChain, IntOrEventualClass type, int outs) {
-    super(label, transformChain);
-    this.terminals.add(new PlainInputTerminal("in", new TransformChain(null, transformChain), type));
-    for (int i = 0; i < outs; i++) {
-      //TODO Label: [0,outs), or [1,outs]?
-      this.terminals.add(new PlainOutputTerminal("out " + i, new TransformChain(null, transformChain), type));
+public class SplitterBlock extends ProcessBlock {
+  public static class Archetype implements BlockArchetype {
+    @Override
+    public String getName() {
+      return "SplitterBlock";
+    }    
+    
+    @Override
+    public HashMap<String, Class> getParameters() {
+      HashMap<String, Class> parameters = new HashMap<>();
+      //TODO Generics, rather than type?
+      parameters.put("type", IntOrEventualClass.class);
+      parameters.put("count", Integer.class);
+      return parameters;
+    }
+
+    @Override
+    public Block createWireform(HashMap<String, Object> params, String label, TransformChain transformChain) {
+      params = (params != null ? params : new HashMap<String, Object>());
+      SplitterBlock block = new SplitterBlock(false, params, label, transformChain);
+      IntOrEventualClass type = (IntOrEventualClass) params.getOrDefault("type", new IntOrEventualClass(Object.class));
+      int count = (Integer) params.getOrDefault("count", 2);
+      block.terminals.add(new PlainInputTerminal("in", new TransformChain(null, transformChain), type));
+      for (int i = 0; i < count; i++) {
+        //TODO Label: [0,outs), or [1,outs]?
+        block.terminals.add(new PlainOutputTerminal("out " + i, new TransformChain(null, transformChain), type));
+      }
+      return block;
     }
   }
 
-  @Override
-  public Block create() {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+  private HashMap<String, Object> params;
+
+  public SplitterBlock(boolean isArchetype, HashMap<String, Object> params, String label, TransformChain transformChain) {
+    super(label, transformChain);
+    this.params = params;
   }
 }
