@@ -58,7 +58,7 @@ public class IntOrEventualClass {
     result &= Objects.equals(this.clazzString, o.clazzString);
     return result;
   }
-
+  
   @Override
   public int hashCode() {
     return Objects.hash(type, clazz, clazzString);
@@ -155,6 +155,15 @@ public class IntOrEventualClass {
     }
   }
 
+  /**
+   * Can type `b` be assignable to `this` type?
+   * @param b
+   * @return 
+   */
+  public boolean isAssignableFrom(IntOrEventualClass b) {
+    return IntOrEventualClass.compare(this, b) <= 0;
+  }
+  
   @Override
   public String toString() {
     switch (type) {

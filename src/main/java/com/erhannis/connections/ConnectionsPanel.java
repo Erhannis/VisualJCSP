@@ -105,7 +105,6 @@ public class ConnectionsPanel extends javax.swing.JPanel {
     pd.addMouseListener(new MouseListener() {
       @Override
       public void mouseClicked(MouseEvent e) {
-        System.out.println("click");
         Point2D m = pd.ati.transform(new Point2D.Double(e.getX(), e.getY()), null);
         switch (getMode(e)) {
           case NOTHING: // Select
@@ -153,7 +152,6 @@ public class ConnectionsPanel extends javax.swing.JPanel {
 
       @Override
       public void mousePressed(MouseEvent e) {
-        System.out.println("press");
         changed = true;
         Point2D m = pd.ati.transform(new Point2D.Double(e.getX(), e.getY()), null);
         dragStartPoint.value = m;
@@ -183,7 +181,6 @@ public class ConnectionsPanel extends javax.swing.JPanel {
 
       @Override
       public void mouseReleased(MouseEvent e) {
-        System.out.println("release");
         Point2D m = pd.ati.transform(new Point2D.Double(e.getX(), e.getY()), null);
         //selectedBlocks.clear();
 
@@ -238,8 +235,6 @@ public class ConnectionsPanel extends javax.swing.JPanel {
     pd.addMouseMotionListener(new MouseMotionListener() {
       @Override
       public void mouseDragged(MouseEvent e) {
-        System.out.println("drag");
-
         if (dragMode.value == null) {
           return;
         }

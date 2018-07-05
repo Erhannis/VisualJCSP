@@ -23,7 +23,7 @@ public class PlainOutputTerminal extends PlainTerminal {
   @Override
   public boolean canConnectTo(Terminal t) {
     //TODO Allow sub/superclassing, whichever makes sense
-    if (t instanceof PlainInputTerminal && ((PlainInputTerminal)t).type.equals(this.type)) {
+    if (t instanceof PlainInputTerminal && ((PlainInputTerminal)t).type.isAssignableFrom(this.type)) {
       return t.canConnectFrom(this);
     } else {
       return false;

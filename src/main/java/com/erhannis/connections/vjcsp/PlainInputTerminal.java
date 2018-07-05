@@ -28,7 +28,7 @@ public class PlainInputTerminal extends PlainTerminal {
 
   @Override
   public boolean canConnectFrom(Terminal t) {
-    return true;
+    return (t instanceof PlainOutputTerminal); //TODO Is this correct?  Also, should this, too, check types?
   }
 
   @Override
