@@ -23,16 +23,17 @@ import jcsp.plugNplay.ProcessWrite;
  */
 public class UDPReceiverBlockImpl implements CSProcess {
 
-  private final int port;
+  private final ChannelInput portIn;
   private final ChannelOutput out;
 
-  public UDPReceiverBlockImpl(int port, final ChannelOutput out) {
-    this.port = port;
+  public UDPReceiverBlockImpl(ChannelInput portIn, final ChannelOutput out) {
+    this.portIn = portIn;
     this.out = out;
   }
 
   @Override
   public void run() {
+    Integer port = (Integer)portIn.read();
     //TODO Make more robust?
     try {
       // Create a socket to listen on the port.

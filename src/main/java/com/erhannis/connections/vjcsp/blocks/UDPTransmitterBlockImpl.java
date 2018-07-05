@@ -8,6 +8,7 @@ package com.erhannis.connections.vjcsp.blocks;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import jcsp.lang.AltingChannelInput;
 import jcsp.lang.CSProcess;
 import jcsp.lang.ChannelInput;
 import jcsp.lang.ChannelOutput;
@@ -24,18 +25,20 @@ import jcsp.plugNplay.ProcessWrite;
  */
 public class UDPTransmitterBlockImpl implements CSProcess {
 
-  private final String hostname;
-  private final int port;
+  private final AltingChannelInput hostnameIn;
+  private final AltingChannelInput portIn;
   private final ChannelInput in;
 
-  public UDPTransmitterBlockImpl(String hostname, int port, final ChannelInput in) {
-    this.hostname = hostname;
-    this.port = port;
+  public UDPTransmitterBlockImpl(AltingChannelInput hostnameIn, AltingChannelInput portIn, final ChannelInput in) {
+    this.hostnameIn = hostnameIn;
+    this.portIn = portIn;
     this.in = in;
   }
 
   @Override
   public void run() {
+    Integer port = (Integer)portIn.read();
+    String hostname = (String)hostnameIn.read();
     //TODO Make more robust?
     try (DatagramSocket dsocket = new DatagramSocket()) {
       // Get the internet address of the specified host
