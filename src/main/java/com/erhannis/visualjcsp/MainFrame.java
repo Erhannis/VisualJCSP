@@ -209,6 +209,7 @@ public class MainFrame extends javax.swing.JFrame {
       }
     }));
     pm.start();
+    keyPressedChannelOut.write(new KeyEvent(this, 0, 0, 0, KeyEvent.VK_ESCAPE, (char)KeyEvent.VK_ESCAPE));
 
     panel = new ConnectionsPanel();
     jSplitPane1.setRightComponent(panel);

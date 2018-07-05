@@ -19,8 +19,14 @@ Ideas from Blender:
   In-line params?
 Blocks:
   constants
+    one-time emit
+    repeated forever
   math
     plain
     eval
   splitter
-  
+  pass-on on timer
+  delay
+Networks need able to have "external" terminals, for compositing
+Allow delete blocks
+Undo tree?

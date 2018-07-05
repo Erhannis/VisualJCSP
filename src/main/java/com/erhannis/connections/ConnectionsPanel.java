@@ -21,6 +21,8 @@ import com.erhannis.mathnstuff.Holder;
 import com.erhannis.mathnstuff.MeMath;
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Dialog;
+import java.awt.Dialog.ModalityType;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -47,8 +49,11 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import javax.swing.TransferHandler;
 
 /**
@@ -61,7 +66,7 @@ public class ConnectionsPanel extends javax.swing.JPanel {
 
     NOTHING, SHIFT_ONLY, CTRL_ONLY, OTHER;
   }
-  
+
   public static final DataFlavor ARCHETYPE_FLAVOR = new DataFlavor(BlockArchetype.class, "BlockArchetype");
 
   private static final double SCALE_INCREMENT = 1.1;
@@ -333,7 +338,6 @@ public class ConnectionsPanel extends javax.swing.JPanel {
     );
 
     /**/
-    
     this.setTransferHandler(new TransferHandler() {
       public boolean canImport(TransferHandler.TransferSupport support) {
         if (!support.isDataFlavorSupported(ARCHETYPE_FLAVOR)) {
@@ -360,13 +364,25 @@ public class ConnectionsPanel extends javax.swing.JPanel {
         Point2D m = pd.ati.transform(new Point2D.Double(p.getX(), p.getY()), null);
 
         System.out.println(data);
+
         HashMap<String, Object> params = new HashMap<>();
-        //TODO Request params, in a modal
+        if (data.getParameters().size() > 0) {
+          // Note that params is expected to be mutated
+          WireformParamsDialog frame = new WireformParamsDialog(SwingUtilities.getWindowAncestor(ConnectionsPanel.this), "Params for " + data, ModalityType.APPLICATION_MODAL, data.getParameters(), params);
+          frame.setVisible(true);
+        }
+
         //TODO This cast is dumb, and possibly dangerous
-        ProcessBlock block = (ProcessBlock)data.createWireform(params, "label", new TransformChain(AffineTransform.getTranslateInstance(m.getX(), m.getY()), network.getTransformChain()));
-        network.blocks.add(block);
+        try {
+          ProcessBlock block = (ProcessBlock) data.createWireform(params, data.getName(), new TransformChain(AffineTransform.getTranslateInstance(m.getX(), m.getY()), network.getTransformChain()));
+          network.blocks.add(block);
+        } catch (Exception e) {
+          e.printStackTrace();
+          //TODO Show error to user
+        }
+
         doRepaint();
-        
+
         return true;
       }
     });
