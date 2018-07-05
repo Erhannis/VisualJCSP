@@ -6,7 +6,7 @@
 package com.erhannis.connections.vjcsp;
 
 import com.erhannis.connections.ConnectionsPanel;
-import com.erhannis.connections.base.Block;
+import com.erhannis.connections.base.BlockWireform;
 import com.erhannis.connections.base.Drawable;
 import com.erhannis.connections.base.Labeled;
 import com.erhannis.connections.base.Terminal;
@@ -23,7 +23,7 @@ import java.util.LinkedHashSet;
  *
  * @author erhannis
  */
-public abstract class ProcessBlock implements Block, Drawable, Labeled {
+public abstract class ProcessBlock implements BlockWireform, Drawable, Labeled {
   protected final LinkedHashSet<VJCSPTerminal> terminals = new LinkedHashSet<>();
 
   protected String label;

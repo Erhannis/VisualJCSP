@@ -43,7 +43,7 @@ public interface BlockArchetype {
    * @param params
    * @return 
    */
-  public Block createWireform(HashMap<String, Object> params, String label, TransformChain transformChain); //TODO Should the second two params be here?
+  public BlockWireform createWireform(HashMap<String, Object> params, String label, TransformChain transformChain); //TODO Should the second two params be here?
   
   //TODO `getBlockType` or something?
 }

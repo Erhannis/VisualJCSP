@@ -5,10 +5,11 @@
  */
 package com.erhannis.connections.vjcsp;
 
-import com.erhannis.connections.base.Block;
+import com.erhannis.connections.base.BlockWireform;
 import com.erhannis.connections.base.Connection;
 import com.erhannis.connections.base.Drawable;
 import static com.erhannis.connections.base.Drawable.TOP;
+import com.erhannis.connections.base.Network;
 import com.erhannis.connections.base.Terminal;
 import com.erhannis.connections.base.TransformChain;
 import java.awt.Color;
@@ -28,7 +29,7 @@ import java.util.Map.Entry;
  *
  * @author erhannis
  */
-public class VJCSPNetwork implements Drawable {
+public class VJCSPNetwork implements Drawable, Network {
 
   public HashSet<ProcessBlock> blocks = new HashSet<>();
   public HashSet<PlainChannelConnection> connections = new HashSet<>();

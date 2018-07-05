@@ -5,7 +5,7 @@
  */
 package com.erhannis.connections;
 
-import com.erhannis.connections.base.Block;
+import com.erhannis.connections.base.BlockWireform;
 import com.erhannis.connections.base.BlockArchetype;
 import com.erhannis.connections.base.Connection;
 import com.erhannis.connections.base.Drawable;
@@ -80,7 +80,7 @@ public class ConnectionsPanel extends javax.swing.JPanel {
 
   //TODO This doesn't seem very generic
   protected VJCSPNetwork network;
-  public LinkedHashSet<Block> selectedBlocks = new LinkedHashSet<>();
+  public LinkedHashSet<BlockWireform> selectedBlocks = new LinkedHashSet<>();
   protected boolean changed = false;
 
   public AffineTransform at = new AffineTransform(VIEW_PRESCALE, 0, 0, VIEW_PRESCALE, 0, 0);
@@ -114,7 +114,7 @@ public class ConnectionsPanel extends javax.swing.JPanel {
         switch (getMode(e)) {
           case NOTHING: // Select
           {
-            Block picked = pickBlock(m);
+            BlockWireform picked = pickBlock(m);
             if (picked == null) {
               selectedBlocks.clear();
             } else {
@@ -139,7 +139,7 @@ public class ConnectionsPanel extends javax.swing.JPanel {
           }
           case CTRL_ONLY: // +- Selection
           {
-            Block picked = pickBlock(m);
+            BlockWireform picked = pickBlock(m);
             if (selectedBlocks.contains(picked)) {
               selectedBlocks.remove(picked);
             } else {
@@ -251,7 +251,7 @@ public class ConnectionsPanel extends javax.swing.JPanel {
           case NOTHING: // Move
           {
             if (dragLastPoint.value != null) {
-              for (Block b : selectedBlocks) {
+              for (BlockWireform b : selectedBlocks) {
                 if (b instanceof Drawable) {
                   Drawable d = (Drawable) b;
                   //TODO May not take into account parent transforms properly
@@ -291,8 +291,7 @@ public class ConnectionsPanel extends javax.swing.JPanel {
       }
     });
 
-    pd.addMouseWheelListener(
-            new MouseWheelListener() {
+    pd.addMouseWheelListener(new MouseWheelListener() {
               @Override
               public void mouseWheelMoved(MouseWheelEvent evt
               ) {
@@ -319,7 +318,7 @@ public class ConnectionsPanel extends javax.swing.JPanel {
                     if (!selectedBlocks.isEmpty()) {
                       //TODO Scale blockgroup, not just blocks?  I.e., scale distances?
                       double scale = Math.pow(SCALE_INCREMENT, evt.getPreciseWheelRotation());
-                      for (Block b : selectedBlocks) {
+                      for (BlockWireform b : selectedBlocks) {
                         if (b instanceof Drawable) {
                           Drawable d = (Drawable) b;
                           d.getTransformChain().transform.scale(scale, scale);
@@ -368,6 +367,7 @@ public class ConnectionsPanel extends javax.swing.JPanel {
         HashMap<String, Object> params = new HashMap<>();
         if (data.getParameters().size() > 0) {
           // Note that params is expected to be mutated
+          //TODO Make label a param?  Make TransformChain an invisible param?
           WireformParamsDialog frame = new WireformParamsDialog(SwingUtilities.getWindowAncestor(ConnectionsPanel.this), "Params for " + data, ModalityType.APPLICATION_MODAL, data.getParameters(), params);
           frame.setVisible(true);
         }
@@ -400,10 +400,10 @@ public class ConnectionsPanel extends javax.swing.JPanel {
     }
   }
 
-  protected Block pickBlock(Point2D p) {
+  protected BlockWireform pickBlock(Point2D p) {
     double closestDist2 = Double.POSITIVE_INFINITY;
-    Block closest = null;
-    for (Block b : network.blocks) {
+    BlockWireform closest = null;
+    for (BlockWireform b : network.blocks) {
       if (b instanceof Drawable) { // This seems like it ought to be a given....
         Drawable d = (Drawable) b;
         //TODO Could optimize, and/or extract
@@ -424,7 +424,7 @@ public class ConnectionsPanel extends javax.swing.JPanel {
   protected Terminal pickTerminal(Point2D p) {
     double closestDist2 = Double.POSITIVE_INFINITY;
     Terminal closest = null;
-    for (Block b : network.blocks) {
+    for (BlockWireform b : network.blocks) {
       for (Terminal t : b.getTerminals()) {
         if (t instanceof Drawable) { // Also seems like it ought to be given....
           Drawable d = (Drawable) t;
@@ -471,7 +471,7 @@ public class ConnectionsPanel extends javax.swing.JPanel {
       // Draw selected
       g.transform(network.getTransformChain().transform);
       AffineTransform prevTransform = g.getTransform();
-      for (Block b : selectedBlocks) {
+      for (BlockWireform b : selectedBlocks) {
         if (b instanceof Drawable) {
           Drawable d = (Drawable) b;
           d.draw(g, COLOR_HIGHLIGHT);

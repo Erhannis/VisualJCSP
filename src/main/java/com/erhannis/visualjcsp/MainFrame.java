@@ -6,8 +6,9 @@
 package com.erhannis.visualjcsp;
 
 import com.erhannis.connections.ConnectionsPanel;
-import com.erhannis.connections.base.Block;
+import com.erhannis.connections.base.BlockWireform;
 import com.erhannis.connections.base.BlockArchetype;
+import com.erhannis.connections.base.Project;
 import com.erhannis.connections.base.TransformChain;
 import com.erhannis.connections.vjcsp.FileProcessBlock;
 import com.erhannis.connections.vjcsp.IntOrEventualClass;
@@ -72,8 +73,9 @@ import jcsp.lang.SharedChannelOutput;
  * @author erhannis
  */
 public class MainFrame extends javax.swing.JFrame {
-
   protected ConnectionsPanel panel;
+  
+  protected Project mProject;
 
   /**
    * Creates new form MainFrame
@@ -249,9 +251,16 @@ public class MainFrame extends javax.swing.JFrame {
       }
     });
 
+    //TODO Automatically do "new project"
+    
     {
       // Example
+      mProject = new Project();
+
       VJCSPNetwork network = new VJCSPNetwork();
+      
+      mProject.networks.add(network);
+      mProject.mainNetwork = network;
 
       double scale = 20;
 

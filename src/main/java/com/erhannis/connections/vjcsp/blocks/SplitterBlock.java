@@ -5,7 +5,7 @@
  */
 package com.erhannis.connections.vjcsp.blocks;
 
-import com.erhannis.connections.base.Block;
+import com.erhannis.connections.base.BlockWireform;
 import com.erhannis.connections.base.BlockArchetype;
 import com.erhannis.connections.base.TransformChain;
 import com.erhannis.connections.vjcsp.IntOrEventualClass;
@@ -38,7 +38,7 @@ public class SplitterBlock extends ProcessBlock {
     }
 
     @Override
-    public Block createWireform(HashMap<String, Object> params, String label, TransformChain transformChain) {
+    public BlockWireform createWireform(HashMap<String, Object> params, String label, TransformChain transformChain) {
       params = (params != null ? params : new HashMap<String, Object>());
       SplitterBlock block = new SplitterBlock(false, params, label, transformChain);
       IntOrEventualClass type = (IntOrEventualClass) params.getOrDefault("type", new IntOrEventualClass(Object.class));

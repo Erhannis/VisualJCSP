@@ -5,7 +5,7 @@
  */
 package com.erhannis.connections.vjcsp.blocks;
 
-import com.erhannis.connections.base.Block;
+import com.erhannis.connections.base.BlockWireform;
 import com.erhannis.connections.base.BlockArchetype;
 import com.erhannis.connections.base.TransformChain;
 import com.erhannis.connections.vjcsp.IntOrEventualClass;
@@ -36,7 +36,7 @@ public class UDPReceiverBlock extends ProcessBlock {
     }
 
     @Override
-    public Block createWireform(HashMap<String, Object> params, String label, TransformChain transformChain) {
+    public BlockWireform createWireform(HashMap<String, Object> params, String label, TransformChain transformChain) {
       params = (params != null ? params : new HashMap<String, Object>());
       UDPReceiverBlock block = new UDPReceiverBlock(false, params, label, transformChain);
       //TODO I feel like this could be consolidated.
