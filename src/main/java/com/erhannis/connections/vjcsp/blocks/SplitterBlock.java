@@ -5,57 +5,100 @@
  */
 package com.erhannis.connections.vjcsp.blocks;
 
-import com.erhannis.connections.base.BlockWireform;
 import com.erhannis.connections.base.BlockArchetype;
+import com.erhannis.connections.base.BlockWireform;
 import com.erhannis.connections.base.TransformChain;
 import com.erhannis.connections.vjcsp.IntOrEventualClass;
 import com.erhannis.connections.vjcsp.PlainInputTerminal;
 import com.erhannis.connections.vjcsp.PlainOutputTerminal;
 import com.erhannis.connections.vjcsp.ProcessBlock;
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.geom.Point2D;
 import java.util.HashMap;
+import jcsp.lang.CSProcess;
+import jcsp.lang.ChannelInput;
+import jcsp.lang.ChannelOutput;
+import jcsp.lang.Parallel;
+import jcsp.plugNplay.Deparaplex;
+import jcsp.plugNplay.ProcessWrite;
 
 /**
+ * Reads an input, outputs that value in parallel onto N channels. Output can
+ * happen in any order, but must complete before the next value is read. Forked
+ * from jcsp.plugNplay.Deparaplex.
+ *
+ * I'm not yet sure of the relationship between this class and SplitterBlock.
  *
  * @author erhannis
  */
-public class SplitterBlock extends ProcessBlock {
-  public static class Archetype implements BlockArchetype {
-    @Override
-    public String getName() {
-      return "SplitterBlock";
-    }    
-    
-    @Override
-    public HashMap<String, Class> getParameters() {
-      HashMap<String, Class> parameters = new HashMap<>();
-      //TODO Generics, rather than type?
-      parameters.put("type", IntOrEventualClass.class);
-      parameters.put("count", Integer.class);
-      return parameters;
+public class SplitterBlock implements CSProcess {
+  public static class Wireform extends ProcessBlock {
+    public static class Archetype implements BlockArchetype {
+      @Override
+      public String getName() {
+        return "SplitterBlock";
+      }
+      
+      @Override
+      public HashMap<String, Class> getParameters() {
+        HashMap<String, Class> parameters = new HashMap<>();
+        //TODO Generics, rather than type?
+        parameters.put("type", IntOrEventualClass.class);
+        parameters.put("count", Integer.class);
+        return parameters;
+      }
+
+      @Override
+      public BlockWireform createWireform(HashMap<String, Object> params, String label, TransformChain transformChain) {
+        params = (params != null ? params : new HashMap<String, Object>());
+        Wireform wireform = new Wireform(false, params, label, transformChain);
+        IntOrEventualClass type = (IntOrEventualClass) params.getOrDefault("type", new IntOrEventualClass(Object.class));
+        int count = (Integer) params.getOrDefault("count", 2);
+        wireform.terminals.add(new PlainInputTerminal("in", new TransformChain(null, transformChain), type));
+        for (int i = 0; i < count; i++) {
+          //TODO Label: [0,outs), or [1,outs]?
+          wireform.terminals.add(new PlainOutputTerminal("out " + i, new TransformChain(null, transformChain), type));
+        }
+        return wireform;
+      }
     }
 
-    @Override
-    public BlockWireform createWireform(HashMap<String, Object> params, String label, TransformChain transformChain) {
-      params = (params != null ? params : new HashMap<String, Object>());
-      SplitterBlock block = new SplitterBlock(false, params, label, transformChain);
-      IntOrEventualClass type = (IntOrEventualClass) params.getOrDefault("type", new IntOrEventualClass(Object.class));
-      int count = (Integer) params.getOrDefault("count", 2);
-      block.terminals.add(new PlainInputTerminal("in", new TransformChain(null, transformChain), type));
-      for (int i = 0; i < count; i++) {
-        //TODO Label: [0,outs), or [1,outs]?
-        block.terminals.add(new PlainOutputTerminal("out " + i, new TransformChain(null, transformChain), type));
-      }
-      return block;
+    private HashMap<String, Object> params;
+
+    public Wireform(boolean isArchetype, HashMap<String, Object> params, String label, TransformChain transformChain) {
+      super(label, transformChain);
+      this.params = params;
     }
   }
 
-  private HashMap<String, Object> params;
+  private final ChannelInput in;
+  private final ChannelOutput[] out;
 
-  public SplitterBlock(boolean isArchetype, HashMap<String, Object> params, String label, TransformChain transformChain) {
-    super(label, transformChain);
-    this.params = params;
+  /**
+   * Construct a new SplitterBlockImpl process with the input Channel in and the
+   * output Channels out. The ordering of the Channels in the out array make no
+   * difference to the functionality of this process.
+   *
+   * @param in the input channel
+   * @param out the output Channels
+   */
+  public SplitterBlock(final ChannelInput in, final ChannelOutput[] out) {
+    this.in = in;
+    this.out = out;
+  }
+
+  @Override
+  public void run() {
+    final ProcessWrite[] outputProcess = new ProcessWrite[out.length];
+    for (int i = 0; i < out.length; i++) {
+      outputProcess[i] = new ProcessWrite(out[i]);
+    }
+    Parallel parOutput = new Parallel(outputProcess);
+
+    while (true) {
+      Object data = in.read();
+      for (int i = 0; i < outputProcess.length; i++) {
+        outputProcess[i].value = data;
+      }
+      parOutput.run();
+    }
   }
 }

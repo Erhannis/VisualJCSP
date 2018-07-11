@@ -5,8 +5,8 @@
  */
 package com.erhannis.visualjcsp.mock;
 
-import com.erhannis.connections.vjcsp.blocks.UDPReceiverBlockImpl;
-import com.erhannis.connections.vjcsp.blocks.UDPTransmitterBlockImpl;
+import com.erhannis.connections.vjcsp.blocks.UDPReceiverBlock;
+import com.erhannis.connections.vjcsp.blocks.UDPTransmitterBlock;
 import jcsp.lang.AltingChannelInput;
 import jcsp.lang.CSProcess;
 import jcsp.lang.Channel;
@@ -43,8 +43,8 @@ public class MockResultNetwork implements CSProcess {
       new Generate(receiverPortChannelOut, 1234),
       new Generate(transmitterPortChannelOut, 1235),
       new Generate(transmitterHostnameChannelOut, "localhost"),
-      new UDPReceiverBlockImpl(receiverPortChannelIn, msgChannelOut),
-      new UDPTransmitterBlockImpl(transmitterHostnameChannelIn, transmitterPortChannelIn, msgChannelIn)
+      new UDPReceiverBlock(receiverPortChannelIn, msgChannelOut),
+      new UDPTransmitterBlock(transmitterHostnameChannelIn, transmitterPortChannelIn, msgChannelIn)
     }).run();
   }
 }

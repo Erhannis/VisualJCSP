@@ -46,4 +46,21 @@ public interface BlockArchetype {
   public BlockWireform createWireform(HashMap<String, Object> params, String label, TransformChain transformChain); //TODO Should the second two params be here?
   
   //TODO `getBlockType` or something?
+  
+  /**
+   * Returns the fully qualified class of the runform.
+   * When (Project).compile() is called, the class must be accessible as one of
+   * the following:
+   * 1.  A java source file, in (root)/vjcsp/src/(classtree)
+   * 2.  A java class file, in (root)/vjcsp/class/(classtree)
+   * 3.  A java class in a jar, in (root)/vjcsp/libs/(jarfile)
+   * 
+   * If your Runform class contains the Wireform class contains the Archetype class,
+   * then the default implementation of this method will return the correct class name.
+   * 
+   * @return 
+   */
+  public default String getRunformClassname() {
+    return this.getClass().getEnclosingClass().getEnclosingClass().getCanonicalName();
+  }
 }

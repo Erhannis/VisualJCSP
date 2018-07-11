@@ -37,6 +37,7 @@ import java.awt.event.WindowEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -51,6 +52,8 @@ import java.util.stream.Collectors;
 import javax.activation.DataHandler;
 import javax.swing.DefaultListModel;
 import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.TransferHandler;
@@ -75,8 +78,11 @@ import jcsp.lang.SharedChannelOutput;
 public class MainFrame extends javax.swing.JFrame {
   protected ConnectionsPanel panel;
   
+  protected File mProjectFile;
   protected Project mProject;
 
+  protected JFileChooser mChooser = new JFileChooser();
+  
   /**
    * Creates new form MainFrame
    */
@@ -236,7 +242,7 @@ public class MainFrame extends javax.swing.JFrame {
         if (hasChanged()) {
           switch (JOptionPane.showConfirmDialog(MainFrame.this, "Save before closing?")) {
             case JOptionPane.YES_OPTION:
-              saveNetwork();
+              save();
               MainFrame.this.dispose();
               break;
             case JOptionPane.NO_OPTION:
@@ -251,11 +257,24 @@ public class MainFrame extends javax.swing.JFrame {
       }
     });
 
-    //TODO Automatically do "new project"
+    if (mChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+      mProjectFile = mChooser.getSelectedFile();
+      //TODO Load/create new
+      if (mProjectFile.exists()) {
+        // Load
+        mProject = new Project();
+      } else {
+        // Create
+        mProject = new Project();
+      }
+    } else {
+      //TODO This isn't the best.
+      JOptionPane.showMessageDialog(this, "Project must have a project file, to know where to put its data.  Application will now quit.");
+      System.exit(0);
+    }
     
     {
       // Example
-      mProject = new Project();
 
       VJCSPNetwork network = new VJCSPNetwork();
       
@@ -310,18 +329,14 @@ public class MainFrame extends javax.swing.JFrame {
   private boolean hasChanged() {
     //TODO Do
     System.err.println("Implement hasChanged");
-    return false;
-  }
-
-  private void saveNetwork() {
-    //TODO Do
-    System.err.println("Implement saveNetwork");
+    return true;
   }
 
   private List<BlockArchetype> getArchetypes() {
     //TODO Make dynamic
+    //TODO Add refresh button
     //TODO FileProcessBlock
-    return Arrays.asList(new SplitterBlock.Archetype(), new UDPReceiverBlock.Archetype(), new UDPTransmitterBlock.Archetype());
+    return Arrays.asList(new SplitterBlock.Wireform.Archetype(), new UDPReceiverBlock.Wireform.Archetype(), new UDPTransmitterBlock.Wireform.Archetype());
   }
 
   /**
@@ -338,7 +353,15 @@ public class MainFrame extends javax.swing.JFrame {
     lFilter = new javax.swing.JLabel();
     jScrollPane1 = new javax.swing.JScrollPane();
     listBlocks = new javax.swing.JList();
+    btnCompile = new javax.swing.JButton();
     jPanel2 = new javax.swing.JPanel();
+    jMenuBar1 = new javax.swing.JMenuBar();
+    jMenu1 = new javax.swing.JMenu();
+    jMenuItem2 = new javax.swing.JMenuItem();
+    jMenuItem3 = new javax.swing.JMenuItem();
+    jMenu2 = new javax.swing.JMenu();
+    jMenu3 = new javax.swing.JMenu();
+    jMenuItem1 = new javax.swing.JMenuItem();
 
     setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
 
@@ -358,6 +381,13 @@ public class MainFrame extends javax.swing.JFrame {
     listBlocks.setRequestFocusEnabled(false);
     jScrollPane1.setViewportView(listBlocks);
 
+    btnCompile.setText("Compile");
+    btnCompile.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        btnCompileActionPerformed(evt);
+      }
+    });
+
     javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
     jPanel1.setLayout(jPanel1Layout);
     jPanel1Layout.setHorizontalGroup(
@@ -367,6 +397,10 @@ public class MainFrame extends javax.swing.JFrame {
         .addComponent(lFilter)
         .addContainerGap(443, Short.MAX_VALUE))
       .addComponent(jScrollPane1)
+      .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        .addComponent(btnCompile)
+        .addContainerGap())
     );
     jPanel1Layout.setVerticalGroup(
       jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -374,7 +408,10 @@ public class MainFrame extends javax.swing.JFrame {
         .addContainerGap()
         .addComponent(lFilter)
         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 619, Short.MAX_VALUE))
+        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 570, javax.swing.GroupLayout.PREFERRED_SIZE)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+        .addComponent(btnCompile)
+        .addContainerGap())
     );
 
     jSplitPane1.setLeftComponent(jPanel1);
@@ -392,6 +429,39 @@ public class MainFrame extends javax.swing.JFrame {
 
     jSplitPane1.setRightComponent(jPanel2);
 
+    jMenu1.setText("File");
+
+    jMenuItem2.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.CTRL_MASK));
+    jMenuItem2.setText("Save");
+    jMenuItem2.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        jMenuItem2ActionPerformed(evt);
+      }
+    });
+    jMenu1.add(jMenuItem2);
+
+    jMenuItem3.setText("Exit");
+    jMenuItem3.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        jMenuItem3ActionPerformed(evt);
+      }
+    });
+    jMenu1.add(jMenuItem3);
+
+    jMenuBar1.add(jMenu1);
+
+    jMenu2.setText("Edit");
+    jMenuBar1.add(jMenu2);
+
+    jMenu3.setText("Help");
+
+    jMenuItem1.setText("About...");
+    jMenu3.add(jMenuItem1);
+
+    jMenuBar1.add(jMenu3);
+
+    setJMenuBar(jMenuBar1);
+
     javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
     getContentPane().setLayout(layout);
     layout.setHorizontalGroup(
@@ -406,6 +476,49 @@ public class MainFrame extends javax.swing.JFrame {
     pack();
   }// </editor-fold>//GEN-END:initComponents
 
+  private void btnCompileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCompileActionPerformed
+    compile();
+  }//GEN-LAST:event_btnCompileActionPerformed
+
+  private void jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem2ActionPerformed
+    save();
+  }//GEN-LAST:event_jMenuItem2ActionPerformed
+
+  private void jMenuItem3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem3ActionPerformed
+    exit();
+  }//GEN-LAST:event_jMenuItem3ActionPerformed
+
+  private void compile() {
+    //TODO Strongly recommend the user put java processes in a package path including "generated"
+    File root = mProjectFile.getParentFile();
+    root.mkdirs();
+    //TODO Check for code changes
+    mProject.compile();
+  }
+  
+  private void save() {
+    //TODO Do
+    System.err.println("Implement save");
+  }
+  
+  private void exit() {
+    if (hasChanged()) {
+      switch (JOptionPane.showConfirmDialog(this, "Exit without saving?", "Exit?", JOptionPane.YES_NO_CANCEL_OPTION)) {
+        case JOptionPane.YES_OPTION:
+          this.dispose();
+          break;
+        case JOptionPane.NO_OPTION:
+          save();
+          this.dispose();
+          break;
+        case JOptionPane.CANCEL_OPTION:
+          break;
+      }
+    } else {
+      this.dispose();
+    }
+  }
+  
   /**
    * @param args the command line arguments
    */
@@ -442,6 +555,14 @@ public class MainFrame extends javax.swing.JFrame {
   }
 
   // Variables declaration - do not modify//GEN-BEGIN:variables
+  private javax.swing.JButton btnCompile;
+  private javax.swing.JMenu jMenu1;
+  private javax.swing.JMenu jMenu2;
+  private javax.swing.JMenu jMenu3;
+  private javax.swing.JMenuBar jMenuBar1;
+  private javax.swing.JMenuItem jMenuItem1;
+  private javax.swing.JMenuItem jMenuItem2;
+  private javax.swing.JMenuItem jMenuItem3;
   private javax.swing.JPanel jPanel1;
   private javax.swing.JPanel jPanel2;
   private javax.swing.JScrollPane jScrollPane1;
