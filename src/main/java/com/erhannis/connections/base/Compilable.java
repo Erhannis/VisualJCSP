@@ -5,10 +5,18 @@
  */
 package com.erhannis.connections.base;
 
+import java.io.File;
+
 /**
  *
  * @author erhannis
  */
-public interface Network extends Compilable {
-  //TODO I don't know what should go here
+public interface Compilable {
+  public static class CompilationException extends Exception {
+    CompilationException(Exception ex) {
+      super(ex);
+    }
+  }
+  
+  public void compile(File root) throws CompilationException;
 }

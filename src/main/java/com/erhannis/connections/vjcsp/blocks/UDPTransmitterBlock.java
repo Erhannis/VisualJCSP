@@ -11,6 +11,7 @@ import com.erhannis.connections.base.TransformChain;
 import com.erhannis.connections.vjcsp.IntOrEventualClass;
 import com.erhannis.connections.vjcsp.PlainInputTerminal;
 import com.erhannis.connections.vjcsp.ProcessBlock;
+import java.io.File;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -68,6 +69,13 @@ public class UDPTransmitterBlock implements CSProcess {
       super(label, transformChain);
       this.params = params;
     }
+
+    @Override
+    public void compile(File root) throws CompilationException {
+      new Archetype().compile(root);
+      //TODO Do
+      System.err.println("Implement (UDPTransmitterBlock.Wireform).compile()");
+    }
   }
 
   private final AltingChannelInput hostnameIn;
@@ -98,7 +106,7 @@ public class UDPTransmitterBlock implements CSProcess {
         dsocket.send(packet);
       }
     } catch (Exception e) {
-      System.err.println("UDPTransmitterBlockImpl going down!");
+      System.err.println("UDPTransmitterBlock going down!");
       e.printStackTrace();
     }
   }

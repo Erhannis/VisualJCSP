@@ -6,6 +6,7 @@
 package com.erhannis.connections.vjcsp;
 
 import com.erhannis.connections.base.BlockWireform;
+import com.erhannis.connections.base.Compilable;
 import com.erhannis.connections.base.Connection;
 import com.erhannis.connections.base.Drawable;
 import static com.erhannis.connections.base.Drawable.TOP;
@@ -16,6 +17,7 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
+import java.io.File;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -30,7 +32,6 @@ import java.util.Map.Entry;
  * @author erhannis
  */
 public class VJCSPNetwork implements Drawable, Network {
-
   public HashSet<ProcessBlock> blocks = new HashSet<>();
   public HashSet<PlainChannelConnection> connections = new HashSet<>();
   public transient HashMap<Terminal, PlainChannelConnection> t2c = new HashMap<>();
@@ -131,5 +132,14 @@ public class VJCSPNetwork implements Drawable, Network {
   @Override
   public Color getColor() {
     return Color.YELLOW; //TODO Parameterize?
+  }
+
+  @Override
+  public void compile(File root) throws CompilationException {
+    for (Compilable compilable : blocks) {
+      compilable.compile(root);
+    }
+    //TODO Do
+    throw new RuntimeException("Implement (VJCSPNetwork).compile()");
   }
 }

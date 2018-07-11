@@ -5,6 +5,7 @@
  */
 package com.erhannis.connections.base;
 
+import java.io.File;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 
@@ -12,16 +13,19 @@ import java.util.LinkedHashSet;
  *
  * @author erhannis
  */
-public class Project {
+public class Project implements Compilable {
   public LinkedHashSet<Network> networks = new LinkedHashSet<>();
   public Network mainNetwork;
   
   /**
    * Compiles the project to <i>source code</i>, not to a binary.
    */
-  public void compile() {
+  @Override
+  public void compile(File root) throws CompilationException {
     //TODO Do
     //TODO Check file changes
-    throw new RuntimeException("Not yet implemented");
+    for (Network network : networks) {
+      network.compile(root);
+    }
   }
 }

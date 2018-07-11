@@ -5,13 +5,21 @@
  */
 package com.erhannis.connections.base;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javassist.CannotCompileException;
+import javassist.ClassPool;
+import javassist.CtClass;
+import javassist.NotFoundException;
 
 /**
  *
  * @author erhannis
  */
-public interface BlockArchetype {
+public interface BlockArchetype extends Compilable {
   public String getName();
   
   /**
@@ -62,5 +70,18 @@ public interface BlockArchetype {
    */
   public default String getRunformClassname() {
     return this.getClass().getEnclosingClass().getEnclosingClass().getCanonicalName();
+  }
+
+  @Override
+  public default void compile(File root) throws CompilationException {
+    try {
+      ClassPool cp = ClassPool.getDefault();
+      CtClass clazz = cp.get(getRunformClassname());
+      File libs = new File(root, "libs");
+      libs.mkdirs();
+      clazz.writeFile(libs.getCanonicalPath());
+    } catch (Exception ex) {
+      throw new CompilationException(ex);
+    }
   }
 }

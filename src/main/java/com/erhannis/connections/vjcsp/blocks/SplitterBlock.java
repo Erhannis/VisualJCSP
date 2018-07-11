@@ -12,6 +12,7 @@ import com.erhannis.connections.vjcsp.IntOrEventualClass;
 import com.erhannis.connections.vjcsp.PlainInputTerminal;
 import com.erhannis.connections.vjcsp.PlainOutputTerminal;
 import com.erhannis.connections.vjcsp.ProcessBlock;
+import java.io.File;
 import java.util.HashMap;
 import jcsp.lang.CSProcess;
 import jcsp.lang.ChannelInput;
@@ -36,7 +37,7 @@ public class SplitterBlock implements CSProcess {
       public String getName() {
         return "SplitterBlock";
       }
-      
+
       @Override
       public HashMap<String, Class> getParameters() {
         HashMap<String, Class> parameters = new HashMap<>();
@@ -66,6 +67,13 @@ public class SplitterBlock implements CSProcess {
     public Wireform(boolean isArchetype, HashMap<String, Object> params, String label, TransformChain transformChain) {
       super(label, transformChain);
       this.params = params;
+    }
+
+    @Override
+    public void compile(File root) throws CompilationException {
+      new Archetype().compile(root);
+      //TODO Do
+      System.err.println("Implement (SplitterBlock.Wireform).compile()");
     }
   }
 

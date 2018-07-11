@@ -12,6 +12,7 @@ import com.erhannis.connections.vjcsp.IntOrEventualClass;
 import com.erhannis.connections.vjcsp.PlainInputTerminal;
 import com.erhannis.connections.vjcsp.PlainOutputTerminal;
 import com.erhannis.connections.vjcsp.ProcessBlock;
+import java.io.File;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.util.HashMap;
@@ -63,6 +64,13 @@ public class UDPReceiverBlock implements CSProcess {
       super(label, transformChain);
       this.params = params;
     }
+
+    @Override
+    public void compile(File root) throws CompilationException {
+      new Archetype().compile(root);
+      //TODO Do
+      System.err.println("Implement (UDPReceiverBlock.Wireform).compile()");
+    }
   }
 
   private final ChannelInput portIn;
@@ -106,7 +114,7 @@ public class UDPReceiverBlock implements CSProcess {
         packet.setLength(buffer.length);
       }
     } catch (Exception e) {
-      System.err.println("UDPReceiverBlockImpl going down!");
+      System.err.println("UDPReceiverBlock going down!");
       e.printStackTrace();
     }
   }

@@ -8,6 +8,7 @@ package com.erhannis.visualjcsp;
 import com.erhannis.connections.ConnectionsPanel;
 import com.erhannis.connections.base.BlockWireform;
 import com.erhannis.connections.base.BlockArchetype;
+import com.erhannis.connections.base.Compilable;
 import com.erhannis.connections.base.Project;
 import com.erhannis.connections.base.TransformChain;
 import com.erhannis.connections.vjcsp.FileProcessBlock;
@@ -49,6 +50,10 @@ import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import javassist.CannotCompileException;
+import javassist.ClassPool;
+import javassist.CtClass;
+import javassist.NotFoundException;
 import javax.activation.DataHandler;
 import javax.swing.DefaultListModel;
 import javax.swing.JComponent;
@@ -281,43 +286,43 @@ public class MainFrame extends javax.swing.JFrame {
       mProject.networks.add(network);
       mProject.mainNetwork = network;
 
-      double scale = 20;
-
-      FileProcessBlock generate1 = new FileProcessBlock("Generate 1", new TransformChain(AffineTransform.getTranslateInstance(4 * scale, 4 * scale), network.getTransformChain()));
-      PlainOutputTerminal g1o = generate1.addPlainOutputTerminal("StrOut", new IntOrEventualClass(String.class));
-
-      FileProcessBlock generate2 = new FileProcessBlock("Generate 2", new TransformChain(AffineTransform.getTranslateInstance(12 * scale, 4 * scale), network.getTransformChain()));
-      PlainOutputTerminal g2o = generate2.addPlainOutputTerminal("StrOut", new IntOrEventualClass(String.class));
-
-      FileProcessBlock concat = new FileProcessBlock("Concat", new TransformChain(AffineTransform.getTranslateInstance(8 * scale, 8 * scale), network.getTransformChain()));
-      PlainInputTerminal ci1 = concat.addPlainInputTerminal("StrIn 1", new IntOrEventualClass(String.class));
-      PlainInputTerminal ci2 = concat.addPlainInputTerminal("StrIn 2", new IntOrEventualClass(String.class));
-      PlainOutputTerminal co = concat.addPlainOutputTerminal("StrOut", new IntOrEventualClass(String.class));
-
-      Random r = new Random();
-      for (int i = 0; i < 20; i++) {
-        FileProcessBlock fpb = new FileProcessBlock("test " + i, new TransformChain(AffineTransform.getTranslateInstance(r.nextDouble() * 20 * scale, r.nextDouble() * 20 * scale), network.getTransformChain()));
-        int top = r.nextInt(4);
-        for (int j = 0; j < top; j++) {
-          fpb.addPlainInputTerminal(i + "i" + j, new IntOrEventualClass(String.class));
-        }
-        top = r.nextInt(4);
-        for (int j = 0; j < top; j++) {
-          fpb.addPlainOutputTerminal(i + "o" + j, new IntOrEventualClass(String.class));
-        }
-        //network.blocks.add(fpb);
-      }
-
-      FileProcessBlock sysout = new FileProcessBlock("sysout", new TransformChain(AffineTransform.getTranslateInstance(8 * scale, 12 * scale), network.getTransformChain()));
-      PlainInputTerminal si = sysout.addPlainInputTerminal("StrIn", new IntOrEventualClass(String.class));
-
-      network.blocks.add(generate1);
-      network.blocks.add(generate2);
-      network.blocks.add(concat);
-      network.blocks.add(sysout);
-      network.connect(g1o, ci1);
-      network.connect(g2o, ci2);
-      network.connect(co, si);
+//      double scale = 20;
+//
+//      FileProcessBlock generate1 = new FileProcessBlock("Generate 1", new TransformChain(AffineTransform.getTranslateInstance(4 * scale, 4 * scale), network.getTransformChain()));
+//      PlainOutputTerminal g1o = generate1.addPlainOutputTerminal("StrOut", new IntOrEventualClass(String.class));
+//
+//      FileProcessBlock generate2 = new FileProcessBlock("Generate 2", new TransformChain(AffineTransform.getTranslateInstance(12 * scale, 4 * scale), network.getTransformChain()));
+//      PlainOutputTerminal g2o = generate2.addPlainOutputTerminal("StrOut", new IntOrEventualClass(String.class));
+//
+//      FileProcessBlock concat = new FileProcessBlock("Concat", new TransformChain(AffineTransform.getTranslateInstance(8 * scale, 8 * scale), network.getTransformChain()));
+//      PlainInputTerminal ci1 = concat.addPlainInputTerminal("StrIn 1", new IntOrEventualClass(String.class));
+//      PlainInputTerminal ci2 = concat.addPlainInputTerminal("StrIn 2", new IntOrEventualClass(String.class));
+//      PlainOutputTerminal co = concat.addPlainOutputTerminal("StrOut", new IntOrEventualClass(String.class));
+//
+//      Random r = new Random();
+//      for (int i = 0; i < 20; i++) {
+//        FileProcessBlock fpb = new FileProcessBlock("test " + i, new TransformChain(AffineTransform.getTranslateInstance(r.nextDouble() * 20 * scale, r.nextDouble() * 20 * scale), network.getTransformChain()));
+//        int top = r.nextInt(4);
+//        for (int j = 0; j < top; j++) {
+//          fpb.addPlainInputTerminal(i + "i" + j, new IntOrEventualClass(String.class));
+//        }
+//        top = r.nextInt(4);
+//        for (int j = 0; j < top; j++) {
+//          fpb.addPlainOutputTerminal(i + "o" + j, new IntOrEventualClass(String.class));
+//        }
+//        //network.blocks.add(fpb);
+//      }
+//
+//      FileProcessBlock sysout = new FileProcessBlock("sysout", new TransformChain(AffineTransform.getTranslateInstance(8 * scale, 12 * scale), network.getTransformChain()));
+//      PlainInputTerminal si = sysout.addPlainInputTerminal("StrIn", new IntOrEventualClass(String.class));
+//
+//      network.blocks.add(generate1);
+//      network.blocks.add(generate2);
+//      network.blocks.add(concat);
+//      network.blocks.add(sysout);
+//      network.connect(g1o, ci1);
+//      network.connect(g2o, ci2);
+//      network.connect(co, si);
 
       panel.setNetwork(network);
       if (1 == 1) {
@@ -382,6 +387,8 @@ public class MainFrame extends javax.swing.JFrame {
     jScrollPane1.setViewportView(listBlocks);
 
     btnCompile.setText("Compile");
+    btnCompile.setFocusable(false);
+    btnCompile.setRequestFocusEnabled(false);
     btnCompile.addActionListener(new java.awt.event.ActionListener() {
       public void actionPerformed(java.awt.event.ActionEvent evt) {
         btnCompileActionPerformed(evt);
@@ -477,7 +484,17 @@ public class MainFrame extends javax.swing.JFrame {
   }// </editor-fold>//GEN-END:initComponents
 
   private void btnCompileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCompileActionPerformed
-    compile();
+    try {
+      compile();
+    } catch (IOException ex) { //TODO Show dialog?
+      Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+    } catch (NotFoundException ex) {
+      Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+    } catch (CannotCompileException ex) {
+      Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+    } catch (Compilable.CompilationException ex) {
+      Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+    }
   }//GEN-LAST:event_btnCompileActionPerformed
 
   private void jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem2ActionPerformed
@@ -488,12 +505,13 @@ public class MainFrame extends javax.swing.JFrame {
     exit();
   }//GEN-LAST:event_jMenuItem3ActionPerformed
 
-  private void compile() {
+  private void compile() throws IOException, NotFoundException, CannotCompileException, Compilable.CompilationException {
     //TODO Strongly recommend the user put java processes in a package path including "generated"
     File root = mProjectFile.getParentFile();
     root.mkdirs();
+    
     //TODO Check for code changes
-    mProject.compile();
+    mProject.compile(root);
   }
   
   private void save() {
