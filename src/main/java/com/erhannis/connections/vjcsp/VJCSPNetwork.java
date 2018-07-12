@@ -5,6 +5,7 @@
  */
 package com.erhannis.connections.vjcsp;
 
+import com.erhannis.connections.base.BlockArchetype;
 import com.erhannis.connections.base.BlockWireform;
 import com.erhannis.connections.base.Compilable;
 import com.erhannis.connections.base.Connection;
@@ -22,6 +23,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Represents a network of blocks.
@@ -141,5 +144,10 @@ public class VJCSPNetwork implements Drawable, Network {
     }
     //TODO Do
     throw new RuntimeException("Implement (VJCSPNetwork).compile()");
+  }
+
+  @Override
+  public Set<BlockArchetype> getArchetypes() {
+    return blocks.stream().flatMap(n -> n.getArchetypes().stream()).collect(Collectors.toSet());
   }
 }

@@ -7,7 +7,10 @@ package com.erhannis.connections.base;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javassist.CannotCompileException;
@@ -20,7 +23,18 @@ import javassist.NotFoundException;
  * @author erhannis
  */
 public interface BlockArchetype extends Compilable {
-  public String getName();
+  /**
+   * Returns the name of the archetype.
+   * Frequently this corresponds to the simple classname of the runform.
+   * 
+   * If that is true, and your Runform class contains the Wireform class contains the Archetype class,
+   * then the default implementation of this method will return the correct name.
+   * 
+   * @return 
+   */
+  public default String getName() {
+    return this.getClass().getEnclosingClass().getEnclosingClass().getSimpleName();
+  }
   
   /**
    * Returns the possible parameters for `(BlockArchetype).create()`.
@@ -83,5 +97,10 @@ public interface BlockArchetype extends Compilable {
     } catch (Exception ex) {
       throw new CompilationException(ex);
     }
+  }
+
+  @Override
+  public default Set<BlockArchetype> getArchetypes() {
+    return new HashSet<BlockArchetype>(Arrays.asList(this));
   }
 }

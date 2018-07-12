@@ -14,6 +14,7 @@ import com.erhannis.connections.vjcsp.PlainOutputTerminal;
 import com.erhannis.connections.vjcsp.ProcessBlock;
 import java.io.File;
 import java.util.HashMap;
+import java.util.Set;
 import jcsp.lang.CSProcess;
 import jcsp.lang.ChannelInput;
 import jcsp.lang.ChannelOutput;
@@ -34,11 +35,6 @@ public class SplitterBlock implements CSProcess {
   public static class Wireform extends ProcessBlock {
     public static class Archetype implements BlockArchetype {
       @Override
-      public String getName() {
-        return "SplitterBlock";
-      }
-
-      @Override
       public HashMap<String, Class> getParameters() {
         HashMap<String, Class> parameters = new HashMap<>();
         //TODO Generics, rather than type?
@@ -48,7 +44,7 @@ public class SplitterBlock implements CSProcess {
       }
 
       @Override
-      public BlockWireform createWireform(HashMap<String, Object> params, String label, TransformChain transformChain) {
+      public Wireform createWireform(HashMap<String, Object> params, String label, TransformChain transformChain) {
         params = (params != null ? params : new HashMap<String, Object>());
         Wireform wireform = new Wireform(false, params, label, transformChain);
         IntOrEventualClass type = (IntOrEventualClass) params.getOrDefault("type", new IntOrEventualClass(Object.class));
@@ -59,6 +55,21 @@ public class SplitterBlock implements CSProcess {
           wireform.terminals.add(new PlainOutputTerminal("out " + i, new TransformChain(null, transformChain), type));
         }
         return wireform;
+      }
+
+      // It's a little obnoxious that this code has to be repeated in every Archetype
+      @Override
+      public boolean equals(Object obj) {
+        if (obj == null) {
+          return false;
+        }
+        return (this.getClass() == obj.getClass());
+      }
+
+      // Ditto
+      @Override
+      public int hashCode() {
+        return this.getClass().hashCode();
       }
     }
 
@@ -74,6 +85,12 @@ public class SplitterBlock implements CSProcess {
       new Archetype().compile(root);
       //TODO Do
       System.err.println("Implement (SplitterBlock.Wireform).compile()");
+    }
+
+    @Override
+    public Archetype getArchetype() {
+      //TODO Could probably singleton
+      return new Archetype();
     }
   }
 

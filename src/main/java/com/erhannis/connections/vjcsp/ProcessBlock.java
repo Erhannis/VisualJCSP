@@ -6,6 +6,7 @@
 package com.erhannis.connections.vjcsp;
 
 import com.erhannis.connections.ConnectionsPanel;
+import com.erhannis.connections.base.BlockArchetype;
 import com.erhannis.connections.base.BlockWireform;
 import com.erhannis.connections.base.Drawable;
 import com.erhannis.connections.base.Labeled;
@@ -15,9 +16,11 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  *
@@ -115,5 +118,10 @@ public abstract class ProcessBlock implements BlockWireform, Drawable, Labeled {
   public Point2D.Double getCenter() {
     //TODO Static or something?
     return new Point2D.Double(0, 0);
+  }
+  
+  @Override
+  public Set<BlockArchetype> getArchetypes() {
+    return new HashSet<BlockArchetype>(Arrays.asList(this.getArchetype()));
   }
 }

@@ -6,6 +6,7 @@
 package com.erhannis.connections.base;
 
 import java.io.File;
+import java.util.Set;
 
 /**
  *
@@ -17,6 +18,17 @@ public interface Compilable {
       super(ex);
     }
   }
+  
+  /**
+   * Returns the Archetypes used in the object.  This includes Archetypes
+   * used <i>by</i> the Wireforms in the object, if any - this method is used
+   * to enumerate the classes that need to get copied during compilation.
+   * 
+   * //TODO Not totally sure about this one.
+   * 
+   * @return 
+   */
+  public Set<BlockArchetype> getArchetypes();
   
   public void compile(File root) throws CompilationException;
 }

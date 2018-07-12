@@ -48,7 +48,7 @@ public class UDPTransmitterBlock implements CSProcess {
       }
 
       @Override
-      public BlockWireform createWireform(HashMap<String, Object> params, String label, TransformChain transformChain) {
+      public Wireform createWireform(HashMap<String, Object> params, String label, TransformChain transformChain) {
         params = (params != null ? params : new HashMap<String, Object>());
         Wireform wireform = new Wireform(false, params, label, transformChain);
         //TODO I feel like this could be consolidated.
@@ -60,6 +60,21 @@ public class UDPTransmitterBlock implements CSProcess {
         }
         wireform.terminals.add(new PlainInputTerminal("msg", new TransformChain(null, transformChain), new IntOrEventualClass(String.class)));
         return wireform;
+      }
+
+      // It's a little obnoxious that this code has to be repeated in every Archetype
+      @Override
+      public boolean equals(Object obj) {
+        if (obj == null) {
+          return false;
+        }
+        return (this.getClass() == obj.getClass());
+      }
+
+      // Ditto
+      @Override
+      public int hashCode() {
+        return this.getClass().hashCode();
       }
     }
 
@@ -75,6 +90,12 @@ public class UDPTransmitterBlock implements CSProcess {
       new Archetype().compile(root);
       //TODO Do
       System.err.println("Implement (UDPTransmitterBlock.Wireform).compile()");
+    }
+
+    @Override
+    public Archetype getArchetype() {
+      //TODO Could probably singleton
+      return new Archetype();
     }
   }
 

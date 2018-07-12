@@ -13,7 +13,6 @@ import jcsp.lang.Channel;
 import jcsp.lang.ChannelOutput;
 import jcsp.lang.One2OneChannel;
 import jcsp.lang.Parallel;
-import jcsp.lang.ProcessManager;
 
 /**
  *

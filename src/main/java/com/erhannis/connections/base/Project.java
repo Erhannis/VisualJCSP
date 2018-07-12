@@ -8,6 +8,8 @@ package com.erhannis.connections.base;
 import java.io.File;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -15,7 +17,7 @@ import java.util.LinkedHashSet;
  */
 public class Project implements Compilable {
   public LinkedHashSet<Network> networks = new LinkedHashSet<>();
-  public Network mainNetwork;
+  public Network mainNetwork; //TODO Just add "main" flag to `networks`?
   
   /**
    * Compiles the project to <i>source code</i>, not to a binary.
@@ -27,5 +29,10 @@ public class Project implements Compilable {
     for (Network network : networks) {
       network.compile(root);
     }
+  }
+
+  @Override
+  public Set<BlockArchetype> getArchetypes() {
+    return networks.stream().flatMap(n -> n.getArchetypes().stream()).collect(Collectors.toSet());
   }
 }

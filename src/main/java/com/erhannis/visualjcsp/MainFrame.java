@@ -20,6 +20,9 @@ import com.erhannis.connections.vjcsp.VJCSPNetwork;
 import com.erhannis.connections.vjcsp.blocks.SplitterBlock;
 import com.erhannis.connections.vjcsp.blocks.UDPReceiverBlock;
 import com.erhannis.connections.vjcsp.blocks.UDPTransmitterBlock;
+import com.squareup.javapoet.JavaFile;
+import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.TypeSpec;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.datatransfer.DataFlavor;
@@ -44,6 +47,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
@@ -55,6 +59,7 @@ import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.NotFoundException;
 import javax.activation.DataHandler;
+import javax.lang.model.element.Modifier;
 import javax.swing.DefaultListModel;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -82,12 +87,12 @@ import jcsp.lang.SharedChannelOutput;
  */
 public class MainFrame extends javax.swing.JFrame {
   protected ConnectionsPanel panel;
-  
+
   protected File mProjectFile;
   protected Project mProject;
 
   protected JFileChooser mChooser = new JFileChooser();
-  
+
   /**
    * Creates new form MainFrame
    */
@@ -99,11 +104,11 @@ public class MainFrame extends javax.swing.JFrame {
     listBlocks.setTransferHandler(new TransferHandler() {
       class ArchetypeTransferable implements Transferable {
         public final BlockArchetype archetype;
-        
+
         public ArchetypeTransferable(BlockArchetype archetype) {
           this.archetype = archetype;
         }
-        
+
         @Override
         public DataFlavor[] getTransferDataFlavors() {
           return new DataFlavor[]{ConnectionsPanel.ARCHETYPE_FLAVOR};
@@ -132,10 +137,10 @@ public class MainFrame extends javax.swing.JFrame {
       public int getSourceActions(JComponent c) {
         return TransferHandler.COPY;
       }
-      
+
       @Override
       protected Transferable createTransferable(JComponent c) {
-        return new ArchetypeTransferable((BlockArchetype)listBlocks.getSelectedValue());//new DataHandler(listBlocks.getSelectedValue(), "application/x-java-object");
+        return new ArchetypeTransferable((BlockArchetype) listBlocks.getSelectedValue());//new DataHandler(listBlocks.getSelectedValue(), "application/x-java-object");
       }
 
       @Override
@@ -222,7 +227,7 @@ public class MainFrame extends javax.swing.JFrame {
       }
     }));
     pm.start();
-    keyPressedChannelOut.write(new KeyEvent(this, 0, 0, 0, KeyEvent.VK_ESCAPE, (char)KeyEvent.VK_ESCAPE));
+    keyPressedChannelOut.write(new KeyEvent(this, 0, 0, 0, KeyEvent.VK_ESCAPE, (char) KeyEvent.VK_ESCAPE));
 
     panel = new ConnectionsPanel();
     jSplitPane1.setRightComponent(panel);
@@ -277,12 +282,12 @@ public class MainFrame extends javax.swing.JFrame {
       JOptionPane.showMessageDialog(this, "Project must have a project file, to know where to put its data.  Application will now quit.");
       System.exit(0);
     }
-    
+
     {
       // Example
 
       VJCSPNetwork network = new VJCSPNetwork();
-      
+
       mProject.networks.add(network);
       mProject.mainNetwork = network;
 
@@ -323,7 +328,6 @@ public class MainFrame extends javax.swing.JFrame {
 //      network.connect(g1o, ci1);
 //      network.connect(g2o, ci2);
 //      network.connect(co, si);
-
       panel.setNetwork(network);
       if (1 == 1) {
         return;
@@ -509,16 +513,70 @@ public class MainFrame extends javax.swing.JFrame {
     //TODO Strongly recommend the user put java processes in a package path including "generated"
     File root = mProjectFile.getParentFile();
     root.mkdirs();
-    
+
     //TODO Check for code changes
-    mProject.compile(root);
+    //mProject.compile(root);
+    mockCompilation(root);
   }
-  
+
+  private void mockCompilation(File root) throws Compilable.CompilationException {
+    // First, setting up the mock network.  It won't be directly used, yet, but it's important to know what we're dealing with.
+    double scale = 20;
+
+    Project project = new Project();
+    VJCSPNetwork network = new VJCSPNetwork();
+    project.networks.add(network);
+    project.mainNetwork = network;
+
+    HashMap<String, Object> params;
+
+    params = new HashMap<String, Object>();
+    params.put("port", 1234);
+    //TODO This cast is dumb, and possibly dangerous
+    ProcessBlock receiver = (ProcessBlock) new UDPReceiverBlock.Wireform.Archetype().createWireform(params, "UDPReceiverBlock", new TransformChain(AffineTransform.getTranslateInstance(4 * scale, 4 * scale), network.getTransformChain()));
+    PlainOutputTerminal r1o = (PlainOutputTerminal) receiver.getTerminals().iterator().next();
+
+    params = new HashMap<String, Object>();
+    params.put("port", 1235);
+    params.put("hostname", "localhost");
+    //TODO This cast is dumb, and possibly dangerous
+    ProcessBlock transmitter = (ProcessBlock) new UDPTransmitterBlock.Wireform.Archetype().createWireform(params, "UDPTransmitterBlock", new TransformChain(AffineTransform.getTranslateInstance(4 * scale, 0 * scale), network.getTransformChain()));
+    PlainInputTerminal t1i = (PlainInputTerminal) transmitter.getTerminals().iterator().next();
+
+    network.blocks.add(receiver);
+    network.blocks.add(transmitter);
+    network.connect(r1o, t1i);
+
+    // Next, performing all the steps compilation would need to take.
+    // First, copying over existing classes.
+    for (BlockArchetype arch : network.getArchetypes()) {
+      arch.compile(root);
+    }
+
+    //TODO Add JCSP and any core runtime VJSCP library
+    // Next, create tie-together code
+    // Main class
+    MethodSpec main = MethodSpec.methodBuilder("main")
+            .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+            .returns(void.class)
+            .addParameter(String[].class, "args")
+            .addStatement("$T.out.println($S)", System.class, "Hello, JavaPoet!")
+            .build();
+    //TODO Hang on, networks kindof have to have an Archetype or something, too - they're their own class.
+    TypeSpec helloWorld = TypeSpec.classBuilder("HelloWorld")
+            .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+            .addMethod(main)
+            .build();
+
+    JavaFile javaFile = JavaFile.builder("com.example.helloworld", helloWorld)
+            .build();
+  }
+
   private void save() {
     //TODO Do
     System.err.println("Implement save");
   }
-  
+
   private void exit() {
     if (hasChanged()) {
       switch (JOptionPane.showConfirmDialog(this, "Exit without saving?", "Exit?", JOptionPane.YES_NO_CANCEL_OPTION)) {
@@ -536,7 +594,7 @@ public class MainFrame extends javax.swing.JFrame {
       this.dispose();
     }
   }
-  
+
   /**
    * @param args the command line arguments
    */

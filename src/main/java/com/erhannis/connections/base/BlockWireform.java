@@ -25,4 +25,6 @@ public interface BlockWireform extends Compilable {
   */
   //TODO createRunform
   //TODO createCodeform???
+  
+  public BlockArchetype getArchetype();
 }
