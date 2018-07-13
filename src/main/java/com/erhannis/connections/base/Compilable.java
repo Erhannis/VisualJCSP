@@ -14,7 +14,7 @@ import java.util.Set;
  */
 public interface Compilable {
   public static class CompilationException extends Exception {
-    CompilationException(Exception ex) {
+    public CompilationException(Exception ex) {
       super(ex);
     }
   }

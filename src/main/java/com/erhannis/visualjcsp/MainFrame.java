@@ -20,8 +20,11 @@ import com.erhannis.connections.vjcsp.VJCSPNetwork;
 import com.erhannis.connections.vjcsp.blocks.SplitterBlock;
 import com.erhannis.connections.vjcsp.blocks.UDPReceiverBlock;
 import com.erhannis.connections.vjcsp.blocks.UDPTransmitterBlock;
+import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterizedTypeName;
+import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import java.awt.Component;
 import java.awt.Container;
@@ -553,23 +556,60 @@ public class MainFrame extends javax.swing.JFrame {
       arch.compile(root);
     }
 
+    File srcDir = new File(root, "src/main/java");
+    srcDir.mkdirs();
+
     //TODO Add JCSP and any core runtime VJSCP library
     // Next, create tie-together code
-    // Main class
-    MethodSpec main = MethodSpec.methodBuilder("main")
-            .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-            .returns(void.class)
-            .addParameter(String[].class, "args")
-            .addStatement("$T.out.println($S)", System.class, "Hello, JavaPoet!")
-            .build();
-    //TODO Hang on, networks kindof have to have an Archetype or something, too - they're their own class.
-    TypeSpec helloWorld = TypeSpec.classBuilder("HelloWorld")
-            .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-            .addMethod(main)
-            .build();
+    // Have to start from the details out, I think maybe
+    // Network init class
+    ClassName networkClass; //TODO Gotta deal with unique names
+    {
+      MethodSpec run = MethodSpec.methodBuilder("run")
+              .addAnnotation(Override.class)
+              .addModifiers(Modifier.PUBLIC)
+              .returns(void.class)
+              .addStatement("$T.out.println($S)", System.class, "Hello, JavaPoet!")
+              .build();
 
-    JavaFile javaFile = JavaFile.builder("com.example.helloworld", helloWorld)
-            .build();
+      TypeSpec networkInitSpec = TypeSpec.classBuilder("NetworkNameHere")
+              .addSuperinterface(TypeName.get(CSProcess.class))
+              .addModifiers(Modifier.PUBLIC)
+              .addMethod(run)
+              .build();
+
+      networkClass = ClassName.get("com.vjcsp.network.classpath", networkInitSpec.name);
+      JavaFile javaFile = JavaFile.builder(networkClass.packageName(), networkInitSpec)
+              .build();
+      try {
+        javaFile.writeTo(srcDir);
+      } catch (IOException ex) {
+        throw new Compilable.CompilationException(ex);
+      }
+    }
+
+    // Main class
+    {
+      MethodSpec main = MethodSpec.methodBuilder("main")
+              .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+              .returns(void.class)
+              .addParameter(String[].class, "args")
+              .addStatement("new $T().run()", networkClass)
+              .build();
+      //TODO Hang on, networks kindof have to have an Archetype or something, too - they're their own class.
+      TypeSpec mainClass = TypeSpec.classBuilder("NetworkNameHere_Main")
+              .addModifiers(Modifier.PUBLIC)
+              .addMethod(main)
+              .build();
+
+      JavaFile javaFile = JavaFile.builder("com.vjcsp.network.classpath", mainClass)
+              .build();
+      try {
+        javaFile.writeTo(srcDir);
+      } catch (IOException ex) {
+        throw new Compilable.CompilationException(ex);
+      }
+    }
   }
 
   private void save() {
