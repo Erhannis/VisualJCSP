@@ -550,7 +550,7 @@ public class MainFrame extends javax.swing.JFrame {
     addDirContentsToJar(classFolder, target);
     target.close();
     System.err.println("Don't forget to add jar to pom.xml");
-    //TODO Add jar to pom.xml
+    //TODO Add jar to pom.xml - or actually, figure out how to include them in the FINAL build, for dependency transitivity
   }
 
   //TODO Move somewhere else?
@@ -727,6 +727,21 @@ public class MainFrame extends javax.swing.JFrame {
         staticParamChannelsCode.add(codeBlock.build());
         addedLines = true;
       }
+      {
+        // Mock
+        staticParamChannelsCode.addStatement("$T $L = $T.one2one()", One2OneChannel.class, "UDPReceiverBlock_port_Channel", Channel.class);
+        staticParamChannelsCode.addStatement("$T $L = $L.out()", ChannelOutput.class, "UDPReceiverBlock_port_Out", "UDPReceiverBlock_port_Channel");
+        staticParamChannelsCode.addStatement("$T $L = $L.in()", AltingChannelInput.class, "UDPReceiverBlock_port_In", "UDPReceiverBlock_port_Channel");
+        staticParamChannelsCode.add("\n");
+        staticParamChannelsCode.addStatement("$T $L = $T.one2one()", One2OneChannel.class, "UDPTransmitterBlock_port_Channel", Channel.class);
+        staticParamChannelsCode.addStatement("$T $L = $L.out()", ChannelOutput.class, "UDPTransmitterBlock_port_Out", "UDPTransmitterBlock_port_Channel");
+        staticParamChannelsCode.addStatement("$T $L = $L.in()", AltingChannelInput.class, "UDPTransmitterBlock_port_In", "UDPTransmitterBlock_port_Channel");
+        staticParamChannelsCode.add("\n");
+        staticParamChannelsCode.addStatement("$T $L = $T.one2one()", One2OneChannel.class, "UDPTransmitterBlock_hostname_Channel", Channel.class);
+        staticParamChannelsCode.addStatement("$T $L = $L.out()", ChannelOutput.class, "UDPTransmitterBlock_hostname_Out", "UDPTransmitterBlock_hostname_Channel");
+        staticParamChannelsCode.addStatement("$T $L = $L.in()", AltingChannelInput.class, "UDPTransmitterBlock_hostname_In", "UDPTransmitterBlock_hostname_Channel");
+        staticParamChannelsCode.add("\n");
+      }      
       if (!addedLines) {
         staticParamChannelsCode.add("\n");
       }
@@ -739,14 +754,14 @@ public class MainFrame extends javax.swing.JFrame {
         processBootCode.add("$[new $T(new $T[]{\n", Parallel.class, CSProcess.class);
 
         // Static params
-        processBootCode.add("new $T($L, $L),\n", Generate.class, "value_port_Out", 1234);
-        processBootCode.add("new $T($L, $L),\n", Generate.class, "value_port_Out_2", 1235);
+        processBootCode.add("new $T($L, $L),\n", Generate.class, "UDPReceiverBlock_port_Out", 1234);
+        processBootCode.add("new $T($L, $L),\n", Generate.class, "UDPTransmitterBlock_port_Out", 1235);
         //TODO NOTE $S HERE
-        processBootCode.add("new $T($L, $S),\n", Generate.class, "value_hostname_Out", "localhost");
+        processBootCode.add("new $T($L, $S),\n", Generate.class, "UDPTransmitterBlock_hostname_Out", "localhost");
 
         // Blocks
-        processBootCode.add("new $T($L, $L),\n", UDPReceiverBlock.class, "value_port_In", "msg_msg_Out");
-        processBootCode.add("new $T($L, $L, $L),\n", UDPTransmitterBlock.class, "value_hostname_In", "value_port_In_2", "msg_msg_In");
+        processBootCode.add("new $T($L, $L),\n", UDPReceiverBlock.class, "UDPReceiverBlock_port_In", "msg_msg_Out");
+        processBootCode.add("new $T($L, $L, $L),\n", UDPTransmitterBlock.class, "UDPTransmitterBlock_hostname_In", "UDPTransmitterBlock_port_In", "msg_msg_In");
 
         processBootCode.add("}).run();$]\n");
       }
