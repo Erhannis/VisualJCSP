@@ -5,22 +5,22 @@
  */
 package com.erhannis.connections.vjcsp;
 
-import com.erhannis.connections.base.Labeled;
+import com.erhannis.connections.base.Named;
 import com.erhannis.connections.base.Terminal;
 
 /**
  *
  * @author erhannis
  */
-public abstract class VJCSPTerminal implements Terminal, Labeled {
-  protected String label;
+public abstract class VJCSPTerminal implements Terminal {
+  protected String name;
   
-  public VJCSPTerminal(String label) {
-    this.label = label;
+  public VJCSPTerminal(String name) {
+    this.name = name;
   }
 
   @Override
-  public String getLabel() {
-    return label;
+  public String getName() {
+    return name;
   }
 }

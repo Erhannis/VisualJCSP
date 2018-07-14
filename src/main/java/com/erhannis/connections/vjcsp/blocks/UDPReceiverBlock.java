@@ -46,9 +46,9 @@ public class UDPReceiverBlock implements CSProcess {
       }
 
       @Override
-      public Wireform createWireform(HashMap<String, Object> params, String label, TransformChain transformChain) {
+      public Wireform createWireform(HashMap<String, Object> params, String name, TransformChain transformChain) {
         params = (params != null ? params : new HashMap<String, Object>());
-        Wireform wireform = new Wireform(false, params, label, transformChain);
+        Wireform wireform = new Wireform(false, params, name, transformChain);
         //TODO I feel like this could be consolidated.
         if (!params.containsKey("port")) {
           wireform.terminals.add(new PlainInputTerminal("port", new TransformChain(null, transformChain), new IntOrEventualClass(Integer.class)));
@@ -75,8 +75,8 @@ public class UDPReceiverBlock implements CSProcess {
 
     private HashMap<String, Object> params;
 
-    public Wireform(boolean isArchetype, HashMap<String, Object> params, String label, TransformChain transformChain) {
-      super(label, transformChain);
+    public Wireform(boolean isArchetype, HashMap<String, Object> params, String name, TransformChain transformChain) {
+      super(name, transformChain);
       this.params = params;
     }
 

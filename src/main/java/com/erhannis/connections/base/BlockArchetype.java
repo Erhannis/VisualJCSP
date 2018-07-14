@@ -5,6 +5,7 @@
  */
 package com.erhannis.connections.base;
 
+import com.erhannis.visualjcsp.Settings;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -65,7 +66,7 @@ public interface BlockArchetype extends Compilable {
    * @param params
    * @return 
    */
-  public BlockWireform createWireform(HashMap<String, Object> params, String label, TransformChain transformChain); //TODO Should the second two params be here?
+  public BlockWireform createWireform(HashMap<String, Object> params, String name, TransformChain transformChain); //TODO Should the second two params be here?
   
   //TODO `getBlockType` or something?
   
@@ -91,7 +92,7 @@ public interface BlockArchetype extends Compilable {
     try {
       ClassPool cp = ClassPool.getDefault();
       CtClass clazz = cp.get(getRunformClassname());
-      File libs = new File(root, "libs");
+      File libs = new File(root, Settings.CLASSES_TARGET_FOLDER);
       libs.mkdirs();
       clazz.writeFile(libs.getCanonicalPath());
     } catch (Exception ex) {

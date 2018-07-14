@@ -16,8 +16,8 @@ import java.awt.geom.Point2D;
  * @author erhannis
  */
 public class PlainOutputTerminal extends PlainTerminal {
-  public PlainOutputTerminal(String label, TransformChain transformChain, IntOrEventualClass type) {
-    super(label, transformChain, type);
+  public PlainOutputTerminal(String name, TransformChain transformChain, IntOrEventualClass type) {
+    super(name, transformChain, type);
   }
   
   @Override

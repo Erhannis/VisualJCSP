@@ -5,6 +5,9 @@
  */
 package com.erhannis.connections.base;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 /**
  *
  * @author erhannis
@@ -24,4 +27,7 @@ public interface Connection {
    * @return
    */
   public boolean removeTerminal(Terminal t); //TODO Could possibly cause problems?
+  
+  public Set<Terminal> getFromTerminals();
+  public Set<Terminal> getToTerminals();
 }

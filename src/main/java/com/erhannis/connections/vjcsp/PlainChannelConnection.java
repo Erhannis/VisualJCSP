@@ -18,6 +18,7 @@ import java.awt.geom.Rectangle2D;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  *
@@ -29,8 +30,8 @@ public class PlainChannelConnection implements Connection, Drawable {
   
   protected static final int CONNECTION_LINE_MODE = CLMODE_DIRECT;
   
-  protected final HashSet<PlainOutputTerminal> outputTerminals = new HashSet<>();
-  protected final HashSet<PlainInputTerminal> inputTerminals = new HashSet<>();
+  protected final LinkedHashSet<PlainOutputTerminal> outputTerminals = new LinkedHashSet<>();
+  protected final LinkedHashSet<PlainInputTerminal> inputTerminals = new LinkedHashSet<>();
   
   //TODO Beware, because of Connection's dependence on world coords of other things, it may react poorly to having its transform changed or parented.
   protected TransformChain transformChain = new TransformChain(new AffineTransform(), null);
@@ -157,5 +158,17 @@ public class PlainChannelConnection implements Connection, Drawable {
       //TODO Exception?  Log?
       return Color.RED;
     }
+  }
+
+  @Override
+  public Set<Terminal> getFromTerminals() {
+    //TODO Might consider returning the actual set
+    return new LinkedHashSet<Terminal>(outputTerminals);
+  }
+
+  @Override
+  public Set<Terminal> getToTerminals() {
+    //TODO Might consider returning the actual set
+    return new LinkedHashSet<Terminal>(inputTerminals);
   }
 }

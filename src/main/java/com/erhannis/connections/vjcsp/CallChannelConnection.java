@@ -7,13 +7,13 @@ package com.erhannis.connections.vjcsp;
 
 import com.erhannis.connections.base.Connection;
 import com.erhannis.connections.base.Terminal;
+import java.util.Set;
 
 /**
  *
  * @author erhannis
  */
 public class CallChannelConnection implements Connection {
-
   @Override
   public void addFromTerminal(Terminal t) {
     throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
@@ -28,4 +28,14 @@ public class CallChannelConnection implements Connection {
   public boolean removeTerminal(Terminal t) {
     throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   } 
+
+  @Override
+  public Set<Terminal> getFromTerminals() {
+    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+  }
+
+  @Override
+  public Set<Terminal> getToTerminals() {
+    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+  }
 }

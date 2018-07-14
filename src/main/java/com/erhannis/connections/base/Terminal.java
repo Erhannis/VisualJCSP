@@ -9,7 +9,7 @@ package com.erhannis.connections.base;
  *
  * @author erhannis
  */
-public interface Terminal {
+public interface Terminal extends Named {
   //TODO Could the kind of connection make a difference?
   /**
    * Can this terminal connect to terminal t?

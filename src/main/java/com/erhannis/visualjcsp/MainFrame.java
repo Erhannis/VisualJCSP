@@ -9,10 +9,12 @@ import com.erhannis.connections.ConnectionsPanel;
 import com.erhannis.connections.base.BlockWireform;
 import com.erhannis.connections.base.BlockArchetype;
 import com.erhannis.connections.base.Compilable;
+import com.erhannis.connections.base.Connection;
 import com.erhannis.connections.base.Project;
 import com.erhannis.connections.base.TransformChain;
 import com.erhannis.connections.vjcsp.FileProcessBlock;
 import com.erhannis.connections.vjcsp.IntOrEventualClass;
+import com.erhannis.connections.vjcsp.PlainChannelConnection;
 import com.erhannis.connections.vjcsp.PlainInputTerminal;
 import com.erhannis.connections.vjcsp.PlainOutputTerminal;
 import com.erhannis.connections.vjcsp.ProcessBlock;
@@ -20,7 +22,11 @@ import com.erhannis.connections.vjcsp.VJCSPNetwork;
 import com.erhannis.connections.vjcsp.blocks.SplitterBlock;
 import com.erhannis.connections.vjcsp.blocks.UDPReceiverBlock;
 import com.erhannis.connections.vjcsp.blocks.UDPTransmitterBlock;
+import com.erhannis.mathnstuff.utils.ListMap;
+import com.erhannis.mathnstuff.utils.VarFunction;
+import com.erhannis.vjcsp.core.Generate;
 import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
@@ -44,7 +50,10 @@ import java.awt.event.WindowEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -54,6 +63,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
+import java.util.function.Function;
+import java.util.jar.Attributes;
+import java.util.jar.JarEntry;
+import java.util.jar.JarOutputStream;
+import java.util.jar.Manifest;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -73,12 +87,15 @@ import javax.swing.TransferHandler;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import jcsp.lang.AltingChannelInput;
+import jcsp.lang.Any2AnyChannel;
 import jcsp.lang.Any2OneChannel;
 import jcsp.lang.CSProcess;
 import jcsp.lang.CSTimer;
 import jcsp.lang.Channel;
+import jcsp.lang.ChannelInput;
 import jcsp.lang.ChannelOutput;
 import jcsp.lang.One2AnyChannel;
+import jcsp.lang.One2OneChannel;
 import jcsp.lang.Parallel;
 import jcsp.lang.ProcessManager;
 import jcsp.lang.SharedChannelInput;
@@ -516,10 +533,78 @@ public class MainFrame extends javax.swing.JFrame {
     //TODO Strongly recommend the user put java processes in a package path including "generated"
     File root = mProjectFile.getParentFile();
     root.mkdirs();
+    File libs = new File(root, Settings.LIBS_FOLDER);
+    libs.mkdirs();
+    File classFolder = new File(root, Settings.CLASSES_TARGET_FOLDER);
+    classFolder.mkdirs();
 
+    //TODO Clean old classes?  Label things "generated", etc.?
     //TODO Check for code changes
-    //mProject.compile(root);
+    mProject.compile(root);
     mockCompilation(root);
+
+    // https://stackoverflow.com/a/1281295/513038
+    Manifest manifest = new Manifest();
+    manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
+    JarOutputStream target = new JarOutputStream(new FileOutputStream(new File(libs, Settings.GENERATED_JAR_FILENAME)), manifest);
+    addDirContentsToJar(classFolder, target);
+    target.close();
+    System.err.println("Don't forget to add jar to pom.xml");
+    //TODO Add jar to pom.xml
+  }
+
+  //TODO Move somewhere else?
+  // Modified from https://stackoverflow.com/a/1281295/513038
+  private static void addDirContentsToJar(File dir, JarOutputStream target) throws IOException {
+    if (dir.isDirectory()) {
+      for (File nestedFile : dir.listFiles()) {
+        addToJar("", nestedFile, target);
+      }
+    } else {
+      throw new IOException("Expected dir; was not: " + dir);
+    }
+  }
+
+  // Modified from https://stackoverflow.com/a/1281295/513038
+  private static void addToJar(String parents, File source, JarOutputStream target) throws IOException {
+    BufferedInputStream in = null;
+    try {
+      if (source.isDirectory()) {
+        String name = (parents + source.getName()).replace("\\", "/");
+        if (!name.isEmpty()) {
+          if (!name.endsWith("/")) {
+            name += "/";
+          }
+          JarEntry entry = new JarEntry(name);
+          entry.setTime(source.lastModified());
+          target.putNextEntry(entry);
+          target.closeEntry();
+        }
+        for (File nestedFile : source.listFiles()) {
+          addToJar(name, nestedFile, target);
+        }
+        return;
+      }
+
+      JarEntry entry = new JarEntry((parents + source.getName()).replace("\\", "/"));
+      entry.setTime(source.lastModified());
+      target.putNextEntry(entry);
+      in = new BufferedInputStream(new FileInputStream(source));
+
+      byte[] buffer = new byte[1024];
+      while (true) {
+        int count = in.read(buffer);
+        if (count == -1) {
+          break;
+        }
+        target.write(buffer, 0, count);
+      }
+      target.closeEntry();
+    } finally {
+      if (in != null) {
+        in.close();
+      }
+    }
   }
 
   private void mockCompilation(File root) throws Compilable.CompilationException {
@@ -565,11 +650,116 @@ public class MainFrame extends javax.swing.JFrame {
     // Network init class
     ClassName networkClass; //TODO Gotta deal with unique names
     {
+      Function<String, String> uniqueName = new Function<String, String>() {
+        private HashSet<String> names = new HashSet<>();
+
+        @Override
+        public String apply(String base) {
+          String result = base;
+          int i = 2;
+          while (names.contains(result)) {
+            result = base + "_" + i;
+            i++;
+          }
+          return result;
+        }
+      };
+
+      boolean addedLines;
+
+      // Connections
+      // Things we need out of this: unique chan = Channel.one2one();, channelIn name, channelOut name.
+      CodeBlock.Builder connectionsCode = CodeBlock.builder();
+      connectionsCode.add("// Connections code\n");
+      addedLines = false;
+      for (Connection con : network.connections) {
+        int froms = con.getFromTerminals().size();
+        int tos = con.getToTerminals().size();
+        if (froms == 0 || tos == 0) {
+          throw new Compilable.CompilationException("Channel has i/o (" + froms + "/" + tos + "), invalid");
+        }
+        CodeBlock.Builder codeBlock = CodeBlock.builder();
+        // "receiver" + "_" + "Port" + "_Channel"
+        String fromTerms = String.join("", con.getFromTerminals().stream().map(t -> t.getName()).collect(Collectors.toList()));
+        String toTerms = String.join("", con.getToTerminals().stream().map(t -> t.getName()).collect(Collectors.toList()));
+        String conBaseName = uniqueName.apply(fromTerms + "_" + toTerms);
+        String conChanName = uniqueName.apply(conBaseName + "_Channel");
+        String conOutName = uniqueName.apply(conBaseName + "_Out");
+        String conInName = uniqueName.apply(conBaseName + "_In");
+        if (froms > 1) {
+          if (tos > 1) {
+            codeBlock.addStatement("$T $L = $T.any2any()", Any2AnyChannel.class, conChanName, Channel.class);
+            codeBlock.addStatement("$T $L = $L.out()", SharedChannelOutput.class, conOutName, conChanName);
+            codeBlock.addStatement("$T $L = $L.in()", SharedChannelInput.class, conInName, conChanName);
+          } else {
+            codeBlock.addStatement("$T $L = $T.any2one()", Any2OneChannel.class, conChanName, Channel.class);
+            codeBlock.addStatement("$T $L = $L.out()", SharedChannelOutput.class, conOutName, conChanName);
+            codeBlock.addStatement("$T $L = $L.in()", AltingChannelInput.class, conInName, conChanName);
+          }
+        } else {
+          if (tos > 1) {
+            codeBlock.addStatement("$T $L = $T.one2any()", One2AnyChannel.class, conChanName, Channel.class);
+            codeBlock.addStatement("$T $L = $L.out()", ChannelOutput.class, conOutName, conChanName);
+            codeBlock.addStatement("$T $L = $L.in()", SharedChannelInput.class, conInName, conChanName);
+          } else {
+            codeBlock.addStatement("$T $L = $T.one2one()", One2OneChannel.class, conChanName, Channel.class);
+            codeBlock.addStatement("$T $L = $L.out()", ChannelOutput.class, conOutName, conChanName);
+            codeBlock.addStatement("$T $L = $L.in()", AltingChannelInput.class, conInName, conChanName);
+          }
+        }
+        codeBlock.add("\n");
+        connectionsCode.add(codeBlock.build());
+        addedLines = true;
+      }
+      if (!addedLines) {
+        connectionsCode.add("\n");
+      }
+
+      // Static param channels
+      // Things we need out of this: unique chan = Channel.one2one();, channelIn name, channelOut name.
+      CodeBlock.Builder staticParamChannelsCode = CodeBlock.builder();
+      staticParamChannelsCode.add("// Static param channels code\n");
+      addedLines = false;
+      for (ProcessBlock block : network.blocks) {
+        CodeBlock.Builder codeBlock = CodeBlock.builder();
+        //TODO Do
+        codeBlock.add("\n");
+        staticParamChannelsCode.add(codeBlock.build());
+        addedLines = true;
+      }
+      if (!addedLines) {
+        staticParamChannelsCode.add("\n");
+      }
+
+      // Process booting
+      CodeBlock.Builder processBootCode = CodeBlock.builder();
+      {
+        processBootCode.add("// Process boot code\n");
+        //TODO Dynamic
+        processBootCode.add("$[new $T(new $T[]{\n", Parallel.class, CSProcess.class);
+
+        // Static params
+        processBootCode.add("new $T($L, $L),\n", Generate.class, "value_port_Out", 1234);
+        processBootCode.add("new $T($L, $L),\n", Generate.class, "value_port_Out_2", 1235);
+        //TODO NOTE $S HERE
+        processBootCode.add("new $T($L, $S),\n", Generate.class, "value_hostname_Out", "localhost");
+
+        // Blocks
+        processBootCode.add("new $T($L, $L),\n", UDPReceiverBlock.class, "value_port_In", "msg_msg_Out");
+        processBootCode.add("new $T($L, $L, $L),\n", UDPTransmitterBlock.class, "value_hostname_In", "value_port_In_2", "msg_msg_In");
+
+        processBootCode.add("}).run();$]\n");
+      }
+
+      //TODO Hmm.  Ok, I need to iterate through connections/blocks, and also I need to be able to map terminals to constructor arguments.
+      //TODO ...OR I need to request code blocks from wireforms.  ...If that works.
       MethodSpec run = MethodSpec.methodBuilder("run")
               .addAnnotation(Override.class)
               .addModifiers(Modifier.PUBLIC)
               .returns(void.class)
-              .addStatement("$T.out.println($S)", System.class, "Hello, JavaPoet!")
+              .addCode(connectionsCode.build())
+              .addCode(staticParamChannelsCode.build())
+              .addCode(processBootCode.build())
               .build();
 
       TypeSpec networkInitSpec = TypeSpec.classBuilder("NetworkNameHere")

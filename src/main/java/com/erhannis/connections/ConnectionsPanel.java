@@ -367,7 +367,7 @@ public class ConnectionsPanel extends javax.swing.JPanel {
         HashMap<String, Object> params = new HashMap<>();
         if (data.getParameters().size() > 0) {
           // Note that params is expected to be mutated
-          //TODO Make label a param?  Make TransformChain an invisible param?
+          //TODO Make name a param?  Make TransformChain an invisible param?
           WireformParamsDialog frame = new WireformParamsDialog(SwingUtilities.getWindowAncestor(ConnectionsPanel.this), "Params for " + data, ModalityType.APPLICATION_MODAL, data.getParameters(), params);
           frame.setVisible(true);
         }

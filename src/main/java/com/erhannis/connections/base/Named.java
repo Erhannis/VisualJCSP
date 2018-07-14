@@ -9,6 +9,6 @@ package com.erhannis.connections.base;
  *
  * @author erhannis
  */
-public interface Labeled {
-  public String getLabel();
+public interface Named {
+  public String getName(); //TODO Could ALSO add Label on top of Name
 }

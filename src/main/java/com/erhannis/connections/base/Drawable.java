@@ -44,8 +44,8 @@ public interface Drawable {
     } else {
       g.setColor(getColor());
     }
-    if (this instanceof Labeled) {
-      g.drawString(((Labeled)this).getLabel(), LEFT, 0);
+    if (this instanceof Named) {
+      g.drawString(((Named)this).getName(), LEFT, 0);
     }
     
     draw0(g, colorOverride);

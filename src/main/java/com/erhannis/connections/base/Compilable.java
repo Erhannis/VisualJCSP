@@ -17,6 +17,10 @@ public interface Compilable {
     public CompilationException(Exception ex) {
       super(ex);
     }
+
+    public CompilationException(String message) {
+      super(message);
+    }
   }
   
   /**

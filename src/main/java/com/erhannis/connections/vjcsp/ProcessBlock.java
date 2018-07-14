@@ -9,7 +9,7 @@ import com.erhannis.connections.ConnectionsPanel;
 import com.erhannis.connections.base.BlockArchetype;
 import com.erhannis.connections.base.BlockWireform;
 import com.erhannis.connections.base.Drawable;
-import com.erhannis.connections.base.Labeled;
+import com.erhannis.connections.base.Named;
 import com.erhannis.connections.base.Terminal;
 import com.erhannis.connections.base.TransformChain;
 import java.awt.Color;
@@ -26,14 +26,14 @@ import java.util.Set;
  *
  * @author erhannis
  */
-public abstract class ProcessBlock implements BlockWireform, Drawable, Labeled {
+public abstract class ProcessBlock implements BlockWireform, Drawable, Named {
   protected final LinkedHashSet<VJCSPTerminal> terminals = new LinkedHashSet<>();
 
-  protected String label;
+  protected String name;
   protected TransformChain transformChain;
   
-  public ProcessBlock(String label, TransformChain transformChain) {
-    this.label = label;
+  public ProcessBlock(String name, TransformChain transformChain) {
+    this.name = name;
     this.transformChain = transformChain;
   }
   
@@ -94,8 +94,8 @@ public abstract class ProcessBlock implements BlockWireform, Drawable, Labeled {
   }
 
   @Override
-  public String getLabel() {
-    return label;
+  public String getName() {
+    return name;
   }
 
   @Override

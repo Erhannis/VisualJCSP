@@ -44,15 +44,15 @@ public class SplitterBlock implements CSProcess {
       }
 
       @Override
-      public Wireform createWireform(HashMap<String, Object> params, String label, TransformChain transformChain) {
+      public Wireform createWireform(HashMap<String, Object> params, String name, TransformChain transformChain) {
         params = (params != null ? params : new HashMap<String, Object>());
-        Wireform wireform = new Wireform(false, params, label, transformChain);
+        Wireform wireform = new Wireform(false, params, name, transformChain);
         IntOrEventualClass type = (IntOrEventualClass) params.getOrDefault("type", new IntOrEventualClass(Object.class));
         int count = (Integer) params.getOrDefault("count", 2);
         wireform.terminals.add(new PlainInputTerminal("in", new TransformChain(null, transformChain), type));
         for (int i = 0; i < count; i++) {
-          //TODO Label: [0,outs), or [1,outs]?
-          wireform.terminals.add(new PlainOutputTerminal("out " + i, new TransformChain(null, transformChain), type));
+          //TODO Name: [0,outs), or [1,outs]?
+          wireform.terminals.add(new PlainOutputTerminal("out" + i, new TransformChain(null, transformChain), type));
         }
         return wireform;
       }
@@ -75,8 +75,8 @@ public class SplitterBlock implements CSProcess {
 
     private HashMap<String, Object> params;
 
-    public Wireform(boolean isArchetype, HashMap<String, Object> params, String label, TransformChain transformChain) {
-      super(label, transformChain);
+    public Wireform(boolean isArchetype, HashMap<String, Object> params, String name, TransformChain transformChain) {
+      super(name, transformChain);
       this.params = params;
     }
 
