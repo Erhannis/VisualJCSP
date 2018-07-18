@@ -13,6 +13,7 @@ import com.erhannis.connections.base.Connection;
 import com.erhannis.connections.base.Project;
 import com.erhannis.connections.base.Terminal;
 import com.erhannis.connections.base.TransformChain;
+import com.erhannis.connections.vjcsp.IntOrEventualClass;
 import com.erhannis.connections.vjcsp.PlainInputTerminal;
 import com.erhannis.connections.vjcsp.PlainOutputTerminal;
 import com.erhannis.connections.vjcsp.ProcessBlock;
@@ -603,15 +604,39 @@ public class MainFrame extends javax.swing.JFrame {
     PlainOutputTerminal r1o = (PlainOutputTerminal) receiver.getTerminals().stream().filter(t -> t instanceof PlainOutputTerminal).findFirst().get();
 
     params = new HashMap<String, Object>();
+    params.put("type", new IntOrEventualClass(String.class));
+    params.put("count", 2);
+    //TODO This cast is dumb, and possibly dangerous
+    ProcessBlock splitter = (ProcessBlock) new SplitterBlock.Wireform.Archetype().createWireform(params, "SplitterBlock", new TransformChain(AffineTransform.getTranslateInstance(4 * scale, 4 * scale), network.getTransformChain()));
+    PlainInputTerminal s1i = (PlainInputTerminal) splitter.getTerminals().stream().filter(t -> t instanceof PlainInputTerminal).findFirst().get();
+    Object[] s1os = splitter.getTerminals().stream().filter(t -> t instanceof PlainOutputTerminal).toArray();
+    PlainOutputTerminal s1o1 = (PlainOutputTerminal) s1os[0];
+    PlainOutputTerminal s1o2 = (PlainOutputTerminal) s1os[1];
+    params.remove("type"); //TODO A hack
+    
+    params = new HashMap<String, Object>();
     params.put("port", 1235);
     params.put("hostname", "localhost");
     //TODO This cast is dumb, and possibly dangerous
-    ProcessBlock transmitter = (ProcessBlock) new UDPTransmitterBlock.Wireform.Archetype().createWireform(params, "UDPTransmitterBlock", new TransformChain(AffineTransform.getTranslateInstance(4 * scale, 0 * scale), network.getTransformChain()));
-    PlainInputTerminal t1i = (PlainInputTerminal) transmitter.getTerminals().iterator().next();
+    ProcessBlock transmitter1 = (ProcessBlock) new UDPTransmitterBlock.Wireform.Archetype().createWireform(params, "UDPTransmitterBlock", new TransformChain(AffineTransform.getTranslateInstance(4 * scale, 0 * scale), network.getTransformChain()));
+    PlainInputTerminal t1i = (PlainInputTerminal) transmitter1.getTerminals().iterator().next();
 
+    params = new HashMap<String, Object>();
+    params.put("port", 1236);
+    params.put("hostname", "localhost");
+    //TODO This cast is dumb, and possibly dangerous
+    ProcessBlock transmitter2 = (ProcessBlock) new UDPTransmitterBlock.Wireform.Archetype().createWireform(params, "UDPTransmitterBlock", new TransformChain(AffineTransform.getTranslateInstance(6 * scale, 0 * scale), network.getTransformChain()));
+    PlainInputTerminal t2i = (PlainInputTerminal) transmitter2.getTerminals().iterator().next();
+    
     network.blocks.add(receiver);
-    network.blocks.add(transmitter);
+    //network.blocks.add(splitter);
+    network.blocks.add(transmitter1);
+    network.blocks.add(transmitter2);
+    //network.connect(r1o, s1i);
+    //network.connect(s1o1, t1i);
+    //network.connect(s1o2, t2i);
     network.connect(r1o, t1i);
+    network.connect(r1o, t2i);
 
     // Next, performing all the steps compilation would need to take.
     // First, copying over existing classes.
@@ -639,6 +664,7 @@ public class MainFrame extends javax.swing.JFrame {
             result = base + "_" + i;
             i++;
           }
+          names.add(result);
           return result;
         }
       };
