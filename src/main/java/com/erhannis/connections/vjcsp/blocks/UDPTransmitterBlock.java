@@ -99,9 +99,9 @@ public class UDPTransmitterBlock implements CSProcess {
 
     @Override
     public CodeBlock getConstructor(Map<String, String> paramToChannelname, Map<Terminal, String> terminalToChannelname) {
-      String hostnameInCname = paramToChannelname.getOrDefault("hostname", terminalToChannelname.getOrDefault(getTerminals().stream().filter(t -> "hostname".equals(t.getName())).findFirst().get(), ERROR_NAME));
-      String portInCname = paramToChannelname.getOrDefault("port", terminalToChannelname.getOrDefault(getTerminals().stream().filter(t -> "port".equals(t.getName())).findFirst().get(), ERROR_NAME));
-      String msgInCname = terminalToChannelname.getOrDefault(getTerminals().stream().filter(t -> "msg".equals(t.getName())).findFirst().get(), ERROR_NAME);
+      String hostnameInCname = paramToChannelname.getOrDefault("hostname", terminalToChannelname.getOrDefault(getTerminals().stream().filter(t -> "hostname".equals(t.getName())).findFirst().orElse(null), ERROR_NAME));
+      String portInCname = paramToChannelname.getOrDefault("port", terminalToChannelname.getOrDefault(getTerminals().stream().filter(t -> "port".equals(t.getName())).findFirst().orElse(null), ERROR_NAME));
+      String msgInCname = terminalToChannelname.getOrDefault(getTerminals().stream().filter(t -> "msg".equals(t.getName())).findFirst().orElse(null), ERROR_NAME);
       ArrayList<Object> formatArgs = new ArrayList<>();
       formatArgs.add(getRunformClass());
       formatArgs.add(hostnameInCname);

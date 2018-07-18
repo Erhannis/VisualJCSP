@@ -94,15 +94,8 @@ public class UDPReceiverBlock implements CSProcess {
 
     @Override
     public CodeBlock getConstructor(Map<String, String> paramToChannelname, Map<Terminal, String> terminalToChannelname) {
-      String portInCname = ERROR_NAME;
-      String msgOutCname = ERROR_NAME;
-      for (Terminal t : getTerminals()) {
-        if (t instanceof PlainInputTerminal) {
-          portInCname = terminalToChannelname.get(t);
-        } else {
-          msgOutCname = terminalToChannelname.get(t);
-        }
-      }
+      String portInCname = paramToChannelname.getOrDefault("port", terminalToChannelname.getOrDefault(getTerminals().stream().filter(t -> "port".equals(t.getName())).findFirst().orElse(null), ERROR_NAME));
+      String msgOutCname = terminalToChannelname.getOrDefault(getTerminals().stream().filter(t -> "msg".equals(t.getName())).findFirst().orElse(null), ERROR_NAME);
       ArrayList<Object> formatArgs = new ArrayList<>();
       formatArgs.add(getRunformClass());
       formatArgs.add(portInCname);

@@ -658,46 +658,21 @@ public class MainFrame extends javax.swing.JFrame {
     // Network init class
     ClassName networkClass; //TODO Gotta deal with unique names
     {
-      Function<ProcessBlock, String> blockName = new Function<ProcessBlock, String>() {
-        private HashMap<ProcessBlock, String> names = new HashMap<>();
+      Function<String, String> uniqueName = new Function<String, String>() {
+        private HashSet<String> names = new HashSet<>();
 
         @Override
-        public String apply(ProcessBlock block) {
-          String name = names.get(block);
-          if (name == null) {
-            //TODO Limit to identifier chars
-            String base = block.getName().replaceAll("_", "__"); //TODO ...Hmm.  May not account for _ at beginning or end.
-            name = base;
-            int i = 2;
-            while (names.containsValue(name)) {
-              name = base + "_" + i;
-              i++;
-            }
-            names.put(block, name);
+        public String apply(String base) {
+          String result = base;
+          int i = 2;
+          while (names.contains(result)) {
+            result = base + "_" + i;
+            i++;
           }
-          return name;
+          return result;
         }
       };
-
-      BiFunction<ProcessBlock, Terminal, String> terminalName = new BiFunction<ProcessBlock, Terminal, String>() {
-        private ListMap<Named, String> names = new ListMap<>();
-
-        @Override
-        public String apply(ProcessBlock block, Terminal terminal) {
-          String name = names.get(block, terminal);
-          if (name == null) {
-            String base = blockName.apply(block) + "_" + terminal.getName().replaceAll("_", "__"); //TODO Ditto
-            name = base;
-            int i = 2;
-            while (names.map.containsValue(name)) {
-              name = base + "_" + i;
-              i++;
-            }
-            names.put(name, block, terminal);
-          }
-          return name;
-        }
-      };
+            
       //HashMap<BlockWireform, HashMap<String, String>> paramToChannelname = new HashMap<>();
       FactoryHashMap<BlockWireform, HashMap<String, Pair<String, String>>> wireformToParamToChannelnames = new FactoryHashMap<BlockWireform, HashMap<String, Pair<String, String>>>((block) -> new HashMap<String, Pair<String, String>>());
       HashMap<Terminal, String> terminalToChannelname = new HashMap<>();
