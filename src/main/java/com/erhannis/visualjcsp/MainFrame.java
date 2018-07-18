@@ -10,7 +10,9 @@ import com.erhannis.connections.base.BlockWireform;
 import com.erhannis.connections.base.BlockArchetype;
 import com.erhannis.connections.base.Compilable;
 import com.erhannis.connections.base.Connection;
+import com.erhannis.connections.base.Named;
 import com.erhannis.connections.base.Project;
+import com.erhannis.connections.base.Terminal;
 import com.erhannis.connections.base.TransformChain;
 import com.erhannis.connections.vjcsp.FileProcessBlock;
 import com.erhannis.connections.vjcsp.IntOrEventualClass;
@@ -22,6 +24,9 @@ import com.erhannis.connections.vjcsp.VJCSPNetwork;
 import com.erhannis.connections.vjcsp.blocks.SplitterBlock;
 import com.erhannis.connections.vjcsp.blocks.UDPReceiverBlock;
 import com.erhannis.connections.vjcsp.blocks.UDPTransmitterBlock;
+import com.erhannis.mathnstuff.FactoryHashMap;
+import com.erhannis.mathnstuff.Pair;
+import com.erhannis.mathnstuff.utils.Factory;
 import com.erhannis.mathnstuff.utils.ListMap;
 import com.erhannis.mathnstuff.utils.VarFunction;
 import com.erhannis.vjcsp.core.Generate;
@@ -62,7 +67,10 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Random;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
@@ -540,7 +548,7 @@ public class MainFrame extends javax.swing.JFrame {
 
     //TODO Clean old classes?  Label things "generated", etc.?
     //TODO Check for code changes
-    mProject.compile(root);
+    //mProject.compile(root);
     mockCompilation(root);
 
     // https://stackoverflow.com/a/1281295/513038
@@ -622,7 +630,7 @@ public class MainFrame extends javax.swing.JFrame {
     params.put("port", 1234);
     //TODO This cast is dumb, and possibly dangerous
     ProcessBlock receiver = (ProcessBlock) new UDPReceiverBlock.Wireform.Archetype().createWireform(params, "UDPReceiverBlock", new TransformChain(AffineTransform.getTranslateInstance(4 * scale, 4 * scale), network.getTransformChain()));
-    PlainOutputTerminal r1o = (PlainOutputTerminal) receiver.getTerminals().iterator().next();
+    PlainOutputTerminal r1o = (PlainOutputTerminal) receiver.getTerminals().stream().filter(t -> t instanceof PlainOutputTerminal).findFirst().get();
 
     params = new HashMap<String, Object>();
     params.put("port", 1235);
@@ -650,23 +658,54 @@ public class MainFrame extends javax.swing.JFrame {
     // Network init class
     ClassName networkClass; //TODO Gotta deal with unique names
     {
-      Function<String, String> uniqueName = new Function<String, String>() {
-        private HashSet<String> names = new HashSet<>();
+      Function<ProcessBlock, String> blockName = new Function<ProcessBlock, String>() {
+        private HashMap<ProcessBlock, String> names = new HashMap<>();
 
         @Override
-        public String apply(String base) {
-          String result = base;
-          int i = 2;
-          while (names.contains(result)) {
-            result = base + "_" + i;
-            i++;
+        public String apply(ProcessBlock block) {
+          String name = names.get(block);
+          if (name == null) {
+            //TODO Limit to identifier chars
+            String base = block.getName().replaceAll("_", "__"); //TODO ...Hmm.  May not account for _ at beginning or end.
+            name = base;
+            int i = 2;
+            while (names.containsValue(name)) {
+              name = base + "_" + i;
+              i++;
+            }
+            names.put(block, name);
           }
-          return result;
+          return name;
         }
       };
 
+      BiFunction<ProcessBlock, Terminal, String> terminalName = new BiFunction<ProcessBlock, Terminal, String>() {
+        private ListMap<Named, String> names = new ListMap<>();
+
+        @Override
+        public String apply(ProcessBlock block, Terminal terminal) {
+          String name = names.get(block, terminal);
+          if (name == null) {
+            String base = blockName.apply(block) + "_" + terminal.getName().replaceAll("_", "__"); //TODO Ditto
+            name = base;
+            int i = 2;
+            while (names.map.containsValue(name)) {
+              name = base + "_" + i;
+              i++;
+            }
+            names.put(name, block, terminal);
+          }
+          return name;
+        }
+      };
+      //HashMap<BlockWireform, HashMap<String, String>> paramToChannelname = new HashMap<>();
+      FactoryHashMap<BlockWireform, HashMap<String, Pair<String, String>>> wireformToParamToChannelnames = new FactoryHashMap<BlockWireform, HashMap<String, Pair<String, String>>>((block) -> new HashMap<String, Pair<String, String>>());
+      HashMap<Terminal, String> terminalToChannelname = new HashMap<>();
+      
       boolean addedLines;
 
+      HashSet<Terminal> terminalsAccountedFor = new HashSet<Terminal>();
+      
       // Connections
       // Things we need out of this: unique chan = Channel.one2one();, channelIn name, channelOut name.
       CodeBlock.Builder connectionsCode = CodeBlock.builder();
@@ -678,6 +717,8 @@ public class MainFrame extends javax.swing.JFrame {
         if (froms == 0 || tos == 0) {
           throw new Compilable.CompilationException("Channel has i/o (" + froms + "/" + tos + "), invalid");
         }
+        terminalsAccountedFor.addAll(con.getFromTerminals());
+        terminalsAccountedFor.addAll(con.getToTerminals());
         CodeBlock.Builder codeBlock = CodeBlock.builder();
         // "receiver" + "_" + "Port" + "_Channel"
         String fromTerms = String.join("", con.getFromTerminals().stream().map(t -> t.getName()).collect(Collectors.toList()));
@@ -709,6 +750,14 @@ public class MainFrame extends javax.swing.JFrame {
         }
         codeBlock.add("\n");
         connectionsCode.add(codeBlock.build());
+        
+        for (Terminal t : con.getFromTerminals()) {
+          terminalToChannelname.put(t, conOutName);
+        }
+        for (Terminal t : con.getToTerminals()) {
+          terminalToChannelname.put(t, conInName);
+        }
+        
         addedLines = true;
       }
       if (!addedLines) {
@@ -721,27 +770,35 @@ public class MainFrame extends javax.swing.JFrame {
       staticParamChannelsCode.add("// Static param channels code\n");
       addedLines = false;
       for (ProcessBlock block : network.blocks) {
+        HashMap<String, Pair<String, String>> paramToChannelnames = wireformToParamToChannelnames.get(block);
         CodeBlock.Builder codeBlock = CodeBlock.builder();
-        //TODO Do
-        codeBlock.add("\n");
+        //TODO Check if any terminal names overlap?
+        Map<String, Terminal> s2t = block.getTerminals().stream().collect(Collectors.toMap(t -> t.getName(), t -> t));
+        for (String param : block.getArchetype().getParameters().keySet()) {
+          Terminal t = s2t.get(param);
+          // Do the terminals that don't have connections already
+          //TODO Check for and error/warning on unconnected terminals, maybe?
+          //TODO Check this code; it's not run in this test
+          if (t != null && !terminalsAccountedFor.contains(t)) {
+            terminalsAccountedFor.add(t);
+          }
+            
+          String conBaseName = uniqueName.apply(block.getName() + "_" + param);
+          String conChanName = uniqueName.apply(conBaseName + "_Channel");
+          String conOutName = uniqueName.apply(conBaseName + "_Out");
+          String conInName = uniqueName.apply(conBaseName + "_In");
+
+          codeBlock.addStatement("$T $L = $T.one2one()", One2OneChannel.class, conChanName, Channel.class);
+          codeBlock.addStatement("$T $L = $L.out()", ChannelOutput.class, conOutName, conChanName);
+          codeBlock.addStatement("$T $L = $L.in()", AltingChannelInput.class, conInName, conChanName);
+          codeBlock.add("\n");
+          
+          paramToChannelnames.put(param, new Pair<String, String>(conOutName, conInName));
+
+          addedLines = true;
+        }
         staticParamChannelsCode.add(codeBlock.build());
-        addedLines = true;
       }
-      {
-        // Mock
-        staticParamChannelsCode.addStatement("$T $L = $T.one2one()", One2OneChannel.class, "UDPReceiverBlock_port_Channel", Channel.class);
-        staticParamChannelsCode.addStatement("$T $L = $L.out()", ChannelOutput.class, "UDPReceiverBlock_port_Out", "UDPReceiverBlock_port_Channel");
-        staticParamChannelsCode.addStatement("$T $L = $L.in()", AltingChannelInput.class, "UDPReceiverBlock_port_In", "UDPReceiverBlock_port_Channel");
-        staticParamChannelsCode.add("\n");
-        staticParamChannelsCode.addStatement("$T $L = $T.one2one()", One2OneChannel.class, "UDPTransmitterBlock_port_Channel", Channel.class);
-        staticParamChannelsCode.addStatement("$T $L = $L.out()", ChannelOutput.class, "UDPTransmitterBlock_port_Out", "UDPTransmitterBlock_port_Channel");
-        staticParamChannelsCode.addStatement("$T $L = $L.in()", AltingChannelInput.class, "UDPTransmitterBlock_port_In", "UDPTransmitterBlock_port_Channel");
-        staticParamChannelsCode.add("\n");
-        staticParamChannelsCode.addStatement("$T $L = $T.one2one()", One2OneChannel.class, "UDPTransmitterBlock_hostname_Channel", Channel.class);
-        staticParamChannelsCode.addStatement("$T $L = $L.out()", ChannelOutput.class, "UDPTransmitterBlock_hostname_Out", "UDPTransmitterBlock_hostname_Channel");
-        staticParamChannelsCode.addStatement("$T $L = $L.in()", AltingChannelInput.class, "UDPTransmitterBlock_hostname_In", "UDPTransmitterBlock_hostname_Channel");
-        staticParamChannelsCode.add("\n");
-      }      
       if (!addedLines) {
         staticParamChannelsCode.add("\n");
       }
@@ -754,14 +811,29 @@ public class MainFrame extends javax.swing.JFrame {
         processBootCode.add("$[new $T(new $T[]{\n", Parallel.class, CSProcess.class);
 
         // Static params
-        processBootCode.add("new $T($L, $L),\n", Generate.class, "UDPReceiverBlock_port_Out", 1234);
-        processBootCode.add("new $T($L, $L),\n", Generate.class, "UDPTransmitterBlock_port_Out", 1235);
-        //TODO NOTE $S HERE
-        processBootCode.add("new $T($L, $S),\n", Generate.class, "UDPTransmitterBlock_hostname_Out", "localhost");
+        for (BlockWireform block : network.blocks) {
+          HashMap<String, Pair<String, String>> paramToChannelnames = wireformToParamToChannelnames.get(block);
+          for (Entry<String, Object> entry : block.getParameters().entrySet()) {
+            // "UDPReceiverBlock_port_Out"
+            String conOutName = paramToChannelnames.get(entry.getKey()).a;
+            if (entry.getValue() instanceof String) {
+              processBootCode.add("new $T($L, $S),\n", Generate.class, conOutName, entry.getValue());
+            } else if (entry.getValue() instanceof Number) {
+              processBootCode.add("new $T($L, $L),\n", Generate.class, conOutName, entry.getValue());
+            } else {
+              //TODO Provide some way of providing a generator?
+              throw new Compilable.CompilationException("Type code-building not yet implemented: " + entry.getValue().getClass());
+            }
+          }
+        }
 
         // Blocks
-        processBootCode.add("new $T($L, $L),\n", UDPReceiverBlock.class, "UDPReceiverBlock_port_In", "msg_msg_Out");
-        processBootCode.add("new $T($L, $L, $L),\n", UDPTransmitterBlock.class, "UDPTransmitterBlock_hostname_In", "UDPTransmitterBlock_port_In", "msg_msg_In");
+        for (BlockWireform block : network.blocks) {
+          processBootCode.add(block.getConstructor(wireformToParamToChannelnames.get(block).entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e-> e.getValue().b)), terminalToChannelname));
+          processBootCode.add(",\n");
+        }
+//        processBootCode.add("new $T($L, $L),\n", UDPReceiverBlock.class, "UDPReceiverBlock_port_In", "msg_msg_Out");
+//        processBootCode.add("new $T($L, $L, $L),\n", UDPTransmitterBlock.class, "UDPTransmitterBlock_hostname_In", "UDPTransmitterBlock_port_In", "msg_msg_In");
 
         processBootCode.add("}).run();$]\n");
       }

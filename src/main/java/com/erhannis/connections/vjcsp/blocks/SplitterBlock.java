@@ -7,14 +7,19 @@ package com.erhannis.connections.vjcsp.blocks;
 
 import com.erhannis.connections.base.BlockArchetype;
 import com.erhannis.connections.base.BlockWireform;
+import com.erhannis.connections.base.Terminal;
 import com.erhannis.connections.base.TransformChain;
 import com.erhannis.connections.vjcsp.IntOrEventualClass;
 import com.erhannis.connections.vjcsp.PlainInputTerminal;
 import com.erhannis.connections.vjcsp.PlainOutputTerminal;
 import com.erhannis.connections.vjcsp.ProcessBlock;
+import com.squareup.javapoet.CodeBlock;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import jcsp.lang.CSProcess;
 import jcsp.lang.ChannelInput;
 import jcsp.lang.ChannelOutput;
@@ -73,7 +78,7 @@ public class SplitterBlock implements CSProcess {
       }
     }
 
-    private HashMap<String, Object> params;
+    private HashMap<String, Object> params; //TODO Move this and getter into parent?
 
     public Wireform(boolean isArchetype, HashMap<String, Object> params, String name, TransformChain transformChain) {
       super(name, transformChain);
@@ -87,6 +92,30 @@ public class SplitterBlock implements CSProcess {
       System.err.println("Implement (SplitterBlock.Wireform).compile()");
     }
 
+    @Override
+    public CodeBlock getConstructor(Map<String, String> paramToChannelname, Map<Terminal, String> terminalToChannelname) {
+      String inCname = ERROR_NAME;
+      ArrayList<String> outCnames = new ArrayList<>();
+      for (Terminal t : getTerminals()) {
+        if (t instanceof PlainInputTerminal) {
+          inCname = terminalToChannelname.get(t);
+        } else {
+          outCnames.add(terminalToChannelname.get(t));
+        }
+      }
+      ArrayList<Object> formatArgs = new ArrayList<>();
+      formatArgs.add(getRunformClass());
+      formatArgs.add(inCname);
+      formatArgs.addAll(outCnames);
+      String outCformat = String.join(", ", outCnames.stream().map(s -> "$L").collect(Collectors.toList()));
+      return CodeBlock.builder().add("new $T($L, new ChannelOutput[] {" + outCformat + "})", formatArgs.toArray()).build();
+    }
+    
+    @Override
+    public HashMap<String, Object> getParameters() {
+      return params;
+    }
+    
     @Override
     public Archetype getArchetype() {
       //TODO Could probably singleton

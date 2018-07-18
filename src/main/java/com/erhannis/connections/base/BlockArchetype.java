@@ -38,11 +38,11 @@ public interface BlockArchetype extends Compilable {
   }
   
   /**
-   * Returns the possible parameters for `(BlockArchetype).create()`.
+   * Returns the possible parameters for `new (BlockArchetype)()`.
    * For example, {"port":java.lang.Integer, "host":java.lang.String}.
    * 
    * //TODO Allow params to be marked as "required", etc.?
-   * //TODO Allow params to be ordered?
+   * //TODO Allow/require params to be ordered?
    * 
    * @return 
    */

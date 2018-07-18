@@ -6,11 +6,15 @@
 package com.erhannis.connections.vjcsp;
 
 import com.erhannis.connections.base.BlockArchetype;
+import com.erhannis.connections.base.Terminal;
 import com.erhannis.connections.base.TransformChain;
+import com.squareup.javapoet.CodeBlock;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.Point2D;
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -49,6 +53,21 @@ public class FileProcessBlock extends ProcessBlock {
   @Override
   public void compile(File root) throws CompilationException {
     //TODO Do
+    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+  }
+
+  @Override
+  public CodeBlock getConstructor(Map<String, String> paramToChannelname, Map<Terminal, String> terminalToChannelname) {
+    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+  }
+  
+  @Override
+  public HashMap<String, Object> getParameters() {
+    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+  }
+
+  @Override
+  public Class getRunformClass() {
     throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
 }

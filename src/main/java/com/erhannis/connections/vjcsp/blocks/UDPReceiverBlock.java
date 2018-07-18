@@ -7,15 +7,20 @@ package com.erhannis.connections.vjcsp.blocks;
 
 import com.erhannis.connections.base.BlockArchetype;
 import com.erhannis.connections.base.BlockWireform;
+import com.erhannis.connections.base.Terminal;
 import com.erhannis.connections.base.TransformChain;
 import com.erhannis.connections.vjcsp.IntOrEventualClass;
 import com.erhannis.connections.vjcsp.PlainInputTerminal;
 import com.erhannis.connections.vjcsp.PlainOutputTerminal;
 import com.erhannis.connections.vjcsp.ProcessBlock;
+import com.squareup.javapoet.CodeBlock;
 import java.io.File;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
 import jcsp.lang.CSProcess;
 import jcsp.lang.ChannelInput;
 import jcsp.lang.ChannelOutput;
@@ -73,7 +78,7 @@ public class UDPReceiverBlock implements CSProcess {
       }
     }
 
-    private HashMap<String, Object> params;
+    private HashMap<String, Object> params; //TODO Move this and getter into parent?
 
     public Wireform(boolean isArchetype, HashMap<String, Object> params, String name, TransformChain transformChain) {
       super(name, transformChain);
@@ -88,6 +93,29 @@ public class UDPReceiverBlock implements CSProcess {
     }
 
     @Override
+    public CodeBlock getConstructor(Map<String, String> paramToChannelname, Map<Terminal, String> terminalToChannelname) {
+      String portInCname = ERROR_NAME;
+      String msgOutCname = ERROR_NAME;
+      for (Terminal t : getTerminals()) {
+        if (t instanceof PlainInputTerminal) {
+          portInCname = terminalToChannelname.get(t);
+        } else {
+          msgOutCname = terminalToChannelname.get(t);
+        }
+      }
+      ArrayList<Object> formatArgs = new ArrayList<>();
+      formatArgs.add(getRunformClass());
+      formatArgs.add(portInCname);
+      formatArgs.add(msgOutCname);
+      return CodeBlock.builder().add("new $T($L, $L)", formatArgs.toArray()).build();
+    }
+    
+    @Override
+    public HashMap<String, Object> getParameters() {
+      return params;
+    }
+    
+    @Override
     public Archetype getArchetype() {
       //TODO Could probably singleton
       return new Archetype();
@@ -95,11 +123,11 @@ public class UDPReceiverBlock implements CSProcess {
   }
 
   private final ChannelInput portIn;
-  private final ChannelOutput out;
+  private final ChannelOutput msgOut;
 
-  public UDPReceiverBlock(ChannelInput portIn, final ChannelOutput out) {
+  public UDPReceiverBlock(ChannelInput portIn, final ChannelOutput msgOut) {
     this.portIn = portIn;
-    this.out = out;
+    this.msgOut = msgOut;
   }
 
   @Override
@@ -129,7 +157,7 @@ public class UDPReceiverBlock implements CSProcess {
         String msg = new String(buffer, 0, packet.getLength());
         //TODO Make source part of output?
         //System.out.println(packet.getAddress().getHostName() + ": " + msg);
-        out.write(msg);
+        msgOut.write(msg);
 
         // Reset the length of the packet before reusing it.
         packet.setLength(buffer.length);

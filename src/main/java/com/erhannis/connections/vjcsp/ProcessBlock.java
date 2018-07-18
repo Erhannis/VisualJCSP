@@ -26,7 +26,7 @@ import java.util.Set;
  *
  * @author erhannis
  */
-public abstract class ProcessBlock implements BlockWireform, Drawable, Named {
+public abstract class ProcessBlock implements BlockWireform, Drawable, Named { //TODO Make BlockWireform Named?
   protected final LinkedHashSet<VJCSPTerminal> terminals = new LinkedHashSet<>();
 
   protected String name;

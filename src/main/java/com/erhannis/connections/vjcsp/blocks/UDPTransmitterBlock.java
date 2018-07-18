@@ -7,15 +7,20 @@ package com.erhannis.connections.vjcsp.blocks;
 
 import com.erhannis.connections.base.BlockArchetype;
 import com.erhannis.connections.base.BlockWireform;
+import static com.erhannis.connections.base.BlockWireform.ERROR_NAME;
+import com.erhannis.connections.base.Terminal;
 import com.erhannis.connections.base.TransformChain;
 import com.erhannis.connections.vjcsp.IntOrEventualClass;
 import com.erhannis.connections.vjcsp.PlainInputTerminal;
 import com.erhannis.connections.vjcsp.ProcessBlock;
+import com.squareup.javapoet.CodeBlock;
 import java.io.File;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import jcsp.lang.AltingChannelInput;
 import jcsp.lang.CSProcess;
 import jcsp.lang.ChannelInput;
@@ -78,7 +83,7 @@ public class UDPTransmitterBlock implements CSProcess {
       }
     }
 
-    private HashMap<String, Object> params;
+    private HashMap<String, Object> params; //TODO Move this and getter into parent?
 
     public Wireform(boolean isArchetype, HashMap<String, Object> params, String name, TransformChain transformChain) {
       super(name, transformChain);
@@ -93,6 +98,24 @@ public class UDPTransmitterBlock implements CSProcess {
     }
 
     @Override
+    public CodeBlock getConstructor(Map<String, String> paramToChannelname, Map<Terminal, String> terminalToChannelname) {
+      String hostnameInCname = paramToChannelname.getOrDefault("hostname", terminalToChannelname.getOrDefault(getTerminals().stream().filter(t -> "hostname".equals(t.getName())).findFirst().get(), ERROR_NAME));
+      String portInCname = paramToChannelname.getOrDefault("port", terminalToChannelname.getOrDefault(getTerminals().stream().filter(t -> "port".equals(t.getName())).findFirst().get(), ERROR_NAME));
+      String msgInCname = terminalToChannelname.getOrDefault(getTerminals().stream().filter(t -> "msg".equals(t.getName())).findFirst().get(), ERROR_NAME);
+      ArrayList<Object> formatArgs = new ArrayList<>();
+      formatArgs.add(getRunformClass());
+      formatArgs.add(hostnameInCname);
+      formatArgs.add(portInCname);
+      formatArgs.add(msgInCname);
+      return CodeBlock.builder().add("new $T($L, $L, $L)", formatArgs.toArray()).build();
+    }
+    
+    @Override
+    public HashMap<String, Object> getParameters() {
+      return params;
+    }
+    
+    @Override
     public Archetype getArchetype() {
       //TODO Could probably singleton
       return new Archetype();
@@ -101,12 +124,12 @@ public class UDPTransmitterBlock implements CSProcess {
 
   private final AltingChannelInput hostnameIn;
   private final AltingChannelInput portIn;
-  private final ChannelInput in;
+  private final ChannelInput msgIn;
 
-  public UDPTransmitterBlock(AltingChannelInput hostnameIn, AltingChannelInput portIn, final ChannelInput in) {
+  public UDPTransmitterBlock(AltingChannelInput hostnameIn, AltingChannelInput portIn, final ChannelInput msgIn) {
     this.hostnameIn = hostnameIn;
     this.portIn = portIn;
-    this.in = in;
+    this.msgIn = msgIn;
   }
 
   @Override
@@ -119,7 +142,7 @@ public class UDPTransmitterBlock implements CSProcess {
       InetAddress address = InetAddress.getByName(hostname);
 
       while (true) {
-        byte[] message = ((String) in.read()).getBytes();
+        byte[] message = ((String) msgIn.read()).getBytes();
 
         // Initialize a datagram packet with data and address
         DatagramPacket packet = new DatagramPacket(message, message.length, address, port);

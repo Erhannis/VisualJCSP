@@ -143,8 +143,8 @@ public class VJCSPNetwork implements Drawable, Network {
       compilable.compile(root);
     }
     //TODO Do
-    System.err.println("Implement (VJCSPNetwork).compile() properly");
-    //throw new RuntimeException("Implement (VJCSPNetwork).compile()");
+    //System.err.println("Implement (VJCSPNetwork).compile() properly");
+    throw new RuntimeException("Implement (VJCSPNetwork).compile()");
   }
 
   @Override
