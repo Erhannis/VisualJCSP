@@ -5,7 +5,6 @@
  */
 package com.erhannis.connections.base;
 
-import com.erhannis.visualjcsp.Settings;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -14,10 +13,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javassist.CannotCompileException;
-import javassist.ClassPool;
-import javassist.CtClass;
-import javassist.NotFoundException;
 
 /**
  *
@@ -89,15 +84,16 @@ public interface BlockArchetype extends Compilable {
 
   @Override
   public default void compile(File root) throws CompilationException {
-    try {
-      ClassPool cp = ClassPool.getDefault();
-      CtClass clazz = cp.get(getRunformClassname());
-      File libs = new File(root, Settings.CLASSES_TARGET_FOLDER);
-      libs.mkdirs();
-      clazz.writeFile(libs.getCanonicalPath());
-    } catch (Exception ex) {
-      throw new CompilationException(ex);
-    }
+//    try {
+//      ClassPool cp = ClassPool.getDefault();
+//      CtClass clazz = cp.get(getRunformClassname());
+//      File libs = new File(root, Settings.CLASSES_TARGET_FOLDER);
+//      libs.mkdirs();
+//      clazz.writeFile(libs.getCanonicalPath());
+//    } catch (Exception ex) {
+//      throw new CompilationException(ex);
+//    }
+    System.err.println("Implement (BlockArchetype).compile()?");
   }
 
   @Override

@@ -5,7 +5,6 @@
  */
 package com.erhannis.connections.vjcsp;
 
-import com.erhannis.connections.ConnectionsPanel;
 import com.erhannis.connections.base.BlockArchetype;
 import com.erhannis.connections.base.BlockWireform;
 import com.erhannis.connections.base.Drawable;
