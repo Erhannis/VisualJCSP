@@ -1,5 +1,5 @@
 Current status:
-Non-functional.  Many of the UI actions and underlying structure are set up, but it cannot yet generate source code.
+Slightly functional!  Many of the UI actions and underlying structure are set up, and it can generate some source code - there are likely edge cases I haven't dealt with, yet, and there is an extremely limited palette of blocks to use, atm.
 
 
 Internals developer notes:

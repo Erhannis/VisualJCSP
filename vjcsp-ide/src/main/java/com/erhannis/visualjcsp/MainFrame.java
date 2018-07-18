@@ -637,6 +637,9 @@ public class MainFrame extends javax.swing.JFrame {
     //network.connect(s1o2, t2i);
     network.connect(r1o, t1i);
     network.connect(r1o, t2i);
+    
+    project = this.mProject;
+    network = (VJCSPNetwork)this.mProject.mainNetwork;
 
     // Next, performing all the steps compilation would need to take.
     // First, copying over existing classes.
