@@ -39,11 +39,6 @@ public class UDPReceiverBlock implements CSProcess {
   public static class Wireform extends ProcessBlock {
     public static class Archetype implements BlockArchetype {
       @Override
-      public String getName() {
-        return "UDPReceiverBlock";
-      }
-
-      @Override
       public HashMap<String, Class> getParameters() {
         HashMap<String, Class> parameters = new HashMap<>();
         parameters.put("port", Integer.class);
@@ -78,7 +73,7 @@ public class UDPReceiverBlock implements CSProcess {
       }
     }
 
-    private HashMap<String, Object> params; //TODO Move this and getter into parent?
+    private HashMap<String, Object> params; //TODO Move this and getter into superclass?
 
     public Wireform(boolean isArchetype, HashMap<String, Object> params, String name, TransformChain transformChain) {
       super(name, transformChain);

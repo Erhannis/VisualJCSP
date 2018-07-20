@@ -30,20 +30,15 @@ import jcsp.plugNplay.Deparaplex;
 import jcsp.plugNplay.ProcessWrite;
 
 /**
- * Reads UDP packets onto a channel. Outputs strings.
+ * Reads from a channel out into UDP packets. Accepts strings.
  *
- * http://www.java2s.com/Code/Java/Network-Protocol/ReceiveUDPpockets.htm
+ * http://www.java2s.com/Code/Java/Network-Protocol/SendoutUDPpockets.htm
  *
  * @author erhannis
  */
 public class UDPTransmitterBlock implements CSProcess {
   public static class Wireform extends ProcessBlock {
     public static class Archetype implements BlockArchetype {
-      @Override
-      public String getName() {
-        return "UDPTransmitterBlock";
-      }
-
       @Override
       public HashMap<String, Class> getParameters() {
         HashMap<String, Class> parameters = new HashMap<>();
@@ -83,7 +78,7 @@ public class UDPTransmitterBlock implements CSProcess {
       }
     }
 
-    private HashMap<String, Object> params; //TODO Move this and getter into parent?
+    private HashMap<String, Object> params; //TODO Move this and getter into superclass?
 
     public Wireform(boolean isArchetype, HashMap<String, Object> params, String name, TransformChain transformChain) {
       super(name, transformChain);

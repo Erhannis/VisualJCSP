@@ -19,6 +19,8 @@ import com.erhannis.connections.vjcsp.PlainOutputTerminal;
 import com.erhannis.connections.vjcsp.ProcessBlock;
 import com.erhannis.connections.vjcsp.VJCSPNetwork;
 import com.erhannis.connections.vjcsp.blocks.SplitterBlock;
+import com.erhannis.connections.vjcsp.blocks.StderrBlock;
+import com.erhannis.connections.vjcsp.blocks.StdoutBlock;
 import com.erhannis.connections.vjcsp.blocks.UDPReceiverBlock;
 import com.erhannis.connections.vjcsp.blocks.UDPTransmitterBlock;
 import com.erhannis.mathnstuff.FactoryHashMap;
@@ -344,7 +346,7 @@ public class MainFrame extends javax.swing.JFrame {
     //TODO Make dynamic
     //TODO Add refresh button
     //TODO FileProcessBlock
-    return Arrays.asList(new SplitterBlock.Wireform.Archetype(), new UDPReceiverBlock.Wireform.Archetype(), new UDPTransmitterBlock.Wireform.Archetype());
+    return Arrays.asList(new SplitterBlock.Wireform.Archetype(), new UDPReceiverBlock.Wireform.Archetype(), new UDPTransmitterBlock.Wireform.Archetype(), new StdoutBlock.Wireform.Archetype(), new StderrBlock.Wireform.Archetype());
   }
 
   /**
