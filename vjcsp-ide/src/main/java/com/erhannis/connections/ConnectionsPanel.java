@@ -11,7 +11,7 @@ import com.erhannis.connections.base.Connection;
 import com.erhannis.connections.base.Drawable;
 import com.erhannis.connections.base.Terminal;
 import com.erhannis.connections.base.TransformChain;
-import com.erhannis.connections.vjcsp.FileProcessBlock;
+import com.erhannis.connections.vjcsp.FileProcessWireform;
 import com.erhannis.connections.vjcsp.IntOrEventualClass;
 import com.erhannis.connections.vjcsp.PlainChannelConnection;
 import com.erhannis.connections.vjcsp.ProcessBlock;

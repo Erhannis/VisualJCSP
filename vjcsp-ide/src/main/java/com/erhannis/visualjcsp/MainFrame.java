@@ -5,6 +5,7 @@
  */
 package com.erhannis.visualjcsp;
 
+import com.erhannis.connections.vjcsp.blocks.TapProcess;
 import com.erhannis.connections.ConnectionsPanel;
 import com.erhannis.connections.base.BlockWireform;
 import com.erhannis.connections.base.BlockArchetype;
@@ -13,16 +14,17 @@ import com.erhannis.connections.base.Connection;
 import com.erhannis.connections.base.Project;
 import com.erhannis.connections.base.Terminal;
 import com.erhannis.connections.base.TransformChain;
+import com.erhannis.connections.vjcsp.ClassProcessWireform;
 import com.erhannis.connections.vjcsp.IntOrEventualClass;
 import com.erhannis.connections.vjcsp.PlainInputTerminal;
 import com.erhannis.connections.vjcsp.PlainOutputTerminal;
 import com.erhannis.connections.vjcsp.ProcessBlock;
 import com.erhannis.connections.vjcsp.VJCSPNetwork;
 import com.erhannis.connections.vjcsp.blocks.SplitterBlock;
-import com.erhannis.connections.vjcsp.blocks.StderrBlock;
-import com.erhannis.connections.vjcsp.blocks.StdoutBlock;
-import com.erhannis.connections.vjcsp.blocks.UDPReceiverBlock;
-import com.erhannis.connections.vjcsp.blocks.UDPTransmitterBlock;
+import com.erhannis.connections.vjcsp.blocks.io.StderrBlock;
+import com.erhannis.connections.vjcsp.blocks.io.StdoutBlock;
+import com.erhannis.connections.vjcsp.blocks.io.UDPReceiverBlock;
+import com.erhannis.connections.vjcsp.blocks.io.UDPTransmitterBlock;
 import com.erhannis.mathnstuff.FactoryHashMap;
 import com.erhannis.mathnstuff.Pair;
 import com.erhannis.vjcsp.core.Generate;
@@ -45,12 +47,15 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
@@ -81,6 +86,7 @@ import jcsp.lang.Parallel;
 import jcsp.lang.ProcessManager;
 import jcsp.lang.SharedChannelInput;
 import jcsp.lang.SharedChannelOutput;
+import org.reflections.Reflections;
 
 /**
  *
@@ -94,11 +100,36 @@ public class MainFrame extends javax.swing.JFrame {
 
   protected JFileChooser mChooser = new JFileChooser();
 
+  protected final List<BlockArchetype> mArchetypes;
+
   /**
    * Creates new form MainFrame
    */
   public MainFrame() {
     initComponents();
+
+    { // Get and cache archetypes
+      //TODO Make archetypes for CSProcesses
+      Reflections mReflections = new Reflections();
+      ArrayList<BlockArchetype> results = new ArrayList<>();
+      Set<Class<? extends BlockArchetype>> archetypes = mReflections.getSubTypesOf(BlockArchetype.class);
+      for (Class<? extends BlockArchetype> archClass : archetypes) {
+        try {
+          results.add(archClass.getConstructor().newInstance());
+        } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+          //TODO Log where user can see?
+          Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
+      }
+      for (Class c : new Class[]{TapProcess.class}) {
+        try {
+          results.add(new ClassProcessWireform.Archetype(c));
+        } catch (NoSuchMethodException ex) {
+          Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
+      }
+      mArchetypes = results;
+    }
 
     DefaultListModel<BlockArchetype> modelBlock = new DefaultListModel<>();
     listBlocks.setModel(modelBlock);
@@ -346,7 +377,7 @@ public class MainFrame extends javax.swing.JFrame {
     //TODO Make dynamic
     //TODO Add refresh button
     //TODO FileProcessBlock
-    return Arrays.asList(new SplitterBlock.Wireform.Archetype(), new UDPReceiverBlock.Wireform.Archetype(), new UDPTransmitterBlock.Wireform.Archetype(), new StdoutBlock.Wireform.Archetype(), new StderrBlock.Wireform.Archetype());
+    return mArchetypes;
   }
 
   /**
@@ -615,7 +646,7 @@ public class MainFrame extends javax.swing.JFrame {
     PlainOutputTerminal s1o1 = (PlainOutputTerminal) s1os[0];
     PlainOutputTerminal s1o2 = (PlainOutputTerminal) s1os[1];
     params.remove("type"); //TODO A hack
-    
+
     params = new HashMap<String, Object>();
     params.put("port", 1235);
     params.put("hostname", "localhost");
@@ -629,7 +660,7 @@ public class MainFrame extends javax.swing.JFrame {
     //TODO This cast is dumb, and possibly dangerous
     ProcessBlock transmitter2 = (ProcessBlock) new UDPTransmitterBlock.Wireform.Archetype().createWireform(params, "UDPTransmitterBlock", new TransformChain(AffineTransform.getTranslateInstance(6 * scale, 0 * scale), network.getTransformChain()));
     PlainInputTerminal t2i = (PlainInputTerminal) transmitter2.getTerminals().iterator().next();
-    
+
     network.blocks.add(receiver);
     //network.blocks.add(splitter);
     network.blocks.add(transmitter1);
@@ -639,9 +670,9 @@ public class MainFrame extends javax.swing.JFrame {
     //network.connect(s1o2, t2i);
     network.connect(r1o, t1i);
     network.connect(r1o, t2i);
-    
+
     project = this.mProject;
-    network = (VJCSPNetwork)this.mProject.mainNetwork;
+    network = (VJCSPNetwork) this.mProject.mainNetwork;
 
     // Next, performing all the steps compilation would need to take.
     // First, copying over existing classes.
@@ -673,15 +704,15 @@ public class MainFrame extends javax.swing.JFrame {
           return result;
         }
       };
-            
+
       //HashMap<BlockWireform, HashMap<String, String>> paramToChannelname = new HashMap<>();
       FactoryHashMap<BlockWireform, HashMap<String, Pair<String, String>>> wireformToParamToChannelnames = new FactoryHashMap<BlockWireform, HashMap<String, Pair<String, String>>>((block) -> new HashMap<String, Pair<String, String>>());
       HashMap<Terminal, String> terminalToChannelname = new HashMap<>();
-      
+
       boolean addedLines;
 
       HashSet<Terminal> terminalsAccountedFor = new HashSet<Terminal>();
-      
+
       // Connections
       // Things we need out of this: unique chan = Channel.one2one();, channelIn name, channelOut name.
       CodeBlock.Builder connectionsCode = CodeBlock.builder();
@@ -726,14 +757,14 @@ public class MainFrame extends javax.swing.JFrame {
         }
         codeBlock.add("\n");
         connectionsCode.add(codeBlock.build());
-        
+
         for (Terminal t : con.getFromTerminals()) {
           terminalToChannelname.put(t, conOutName);
         }
         for (Terminal t : con.getToTerminals()) {
           terminalToChannelname.put(t, conInName);
         }
-        
+
         addedLines = true;
       }
       if (!addedLines) {
@@ -758,7 +789,7 @@ public class MainFrame extends javax.swing.JFrame {
           if (t != null && !terminalsAccountedFor.contains(t)) {
             terminalsAccountedFor.add(t);
           }
-            
+
           String conBaseName = uniqueName.apply(block.getName() + "_" + param);
           String conChanName = uniqueName.apply(conBaseName + "_Channel");
           String conOutName = uniqueName.apply(conBaseName + "_Out");
@@ -768,7 +799,7 @@ public class MainFrame extends javax.swing.JFrame {
           codeBlock.addStatement("$T $L = $L.out()", ChannelOutput.class, conOutName, conChanName);
           codeBlock.addStatement("$T $L = $L.in()", AltingChannelInput.class, conInName, conChanName);
           codeBlock.add("\n");
-          
+
           paramToChannelnames.put(param, new Pair<String, String>(conOutName, conInName));
 
           addedLines = true;
@@ -805,7 +836,7 @@ public class MainFrame extends javax.swing.JFrame {
 
         // Blocks
         for (BlockWireform block : network.blocks) {
-          processBootCode.add(block.getConstructor(wireformToParamToChannelnames.get(block).entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e-> e.getValue().b)), terminalToChannelname));
+          processBootCode.add(block.getConstructor(wireformToParamToChannelnames.get(block).entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().b)), terminalToChannelname));
           processBootCode.add(",\n");
         }
 //        processBootCode.add("new $T($L, $L),\n", UDPReceiverBlock.class, "UDPReceiverBlock_port_In", "msg_msg_Out");

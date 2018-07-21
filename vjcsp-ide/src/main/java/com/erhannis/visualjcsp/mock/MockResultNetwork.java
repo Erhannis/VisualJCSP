@@ -6,8 +6,8 @@
 package com.erhannis.visualjcsp.mock;
 
 import com.erhannis.vjcsp.core.Generate;
-import com.erhannis.connections.vjcsp.blocks.UDPReceiverBlock;
-import com.erhannis.connections.vjcsp.blocks.UDPTransmitterBlock;
+import com.erhannis.connections.vjcsp.blocks.io.UDPReceiverBlock;
+import com.erhannis.connections.vjcsp.blocks.io.UDPTransmitterBlock;
 import jcsp.lang.AltingChannelInput;
 import jcsp.lang.CSProcess;
 import jcsp.lang.Channel;

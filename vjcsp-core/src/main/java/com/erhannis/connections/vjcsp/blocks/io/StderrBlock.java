@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.erhannis.connections.vjcsp.blocks;
+package com.erhannis.connections.vjcsp.blocks.io;
 
 import com.erhannis.connections.base.BlockArchetype;
 import com.erhannis.connections.base.BlockWireform;
@@ -30,11 +30,11 @@ import jcsp.plugNplay.Deparaplex;
 import jcsp.plugNplay.ProcessWrite;
 
 /**
- * Reads from a channel onto stdout. Accepts strings.
+ * Reads from a channel onto stderr. Accepts strings.
  *
  * @author erhannis
  */
-public class StdoutBlock implements CSProcess {
+public class StderrBlock implements CSProcess {
   public static class Wireform extends ProcessBlock {
     public static class Archetype implements BlockArchetype {
       @Override
@@ -46,7 +46,7 @@ public class StdoutBlock implements CSProcess {
       @Override
       public Wireform createWireform(HashMap<String, Object> params, String name, TransformChain transformChain) {
         params = (params != null ? params : new HashMap<String, Object>());
-        Wireform wireform = new Wireform(false, params, name, transformChain);
+        Wireform wireform = new Wireform(params, name, transformChain);
         wireform.terminals.add(new PlainInputTerminal("println", new TransformChain(null, transformChain), new IntOrEventualClass(String.class)));
         return wireform;
       }
@@ -69,7 +69,7 @@ public class StdoutBlock implements CSProcess {
 
     private HashMap<String, Object> params; //TODO Move this and getter into superclass?
 
-    public Wireform(boolean isArchetype, HashMap<String, Object> params, String name, TransformChain transformChain) {
+    public Wireform(HashMap<String, Object> params, String name, TransformChain transformChain) {
       super(name, transformChain);
       this.params = params;
     }
@@ -78,7 +78,7 @@ public class StdoutBlock implements CSProcess {
     public void compile(File root) throws CompilationException {
       new Archetype().compile(root);
       //TODO Do
-      System.err.println("Implement (StdoutBlock.Wireform).compile()");
+      System.err.println("Implement (StderrBlock.Wireform).compile()");
     }
 
     @Override
@@ -104,7 +104,7 @@ public class StdoutBlock implements CSProcess {
 
   private final ChannelInput printlnIn;
 
-  public StdoutBlock(final ChannelInput printlnIn) {
+  public StderrBlock(final ChannelInput printlnIn) {
     this.printlnIn = printlnIn;
   }
 
@@ -112,7 +112,7 @@ public class StdoutBlock implements CSProcess {
   public void run() {
     while (true) {
       String message = (String) printlnIn.read();
-      System.out.println(message);
+      System.err.println(message);
     }
   }
 }

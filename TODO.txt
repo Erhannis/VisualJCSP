@@ -6,7 +6,6 @@ Allow compiling to jar, or running in place
 Allow generics
   Consider IntOrEventualClass - maybe add named generics (how coordinate?)
 Allow copy blocks
-Show block/terminal names
 Fix connection weirdness
 When connecting terminal, highlight acceptable targets
 Make block list dynamic
@@ -31,3 +30,6 @@ Networks need able to have "external" terminals, for compositing
 Allow delete blocks
 Undo tree?
 Problem: you can have multiple networks in a project, and a given network can use other networks, perhaps even mutually.  What do you do when A changes, making B's configuration invalid?
+Make LambdaClassBlock
+
+^Show block/terminal names

@@ -7,21 +7,20 @@ package com.erhannis.connections.vjcsp.blocks;
 
 import com.erhannis.connections.base.BlockArchetype;
 import com.erhannis.connections.base.BlockWireform;
-import static com.erhannis.connections.base.BlockWireform.ERROR_NAME;
 import com.erhannis.connections.base.Terminal;
 import com.erhannis.connections.base.TransformChain;
 import com.erhannis.connections.vjcsp.IntOrEventualClass;
 import com.erhannis.connections.vjcsp.PlainInputTerminal;
+import com.erhannis.connections.vjcsp.PlainOutputTerminal;
 import com.erhannis.connections.vjcsp.ProcessBlock;
 import com.squareup.javapoet.CodeBlock;
 import java.io.File;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import jcsp.lang.AltingChannelInput;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 import jcsp.lang.CSProcess;
 import jcsp.lang.ChannelInput;
 import jcsp.lang.ChannelOutput;
@@ -30,11 +29,11 @@ import jcsp.plugNplay.Deparaplex;
 import jcsp.plugNplay.ProcessWrite;
 
 /**
- * Reads from a channel onto stderr. Accepts strings.
+ * Reads an input object x, outputs Objects.toString(x).
  *
  * @author erhannis
  */
-public class StderrBlock implements CSProcess {
+public class ToStringBlock implements CSProcess { //TODO Do same for int channel
   public static class Wireform extends ProcessBlock {
     public static class Archetype implements BlockArchetype {
       @Override
@@ -46,8 +45,9 @@ public class StderrBlock implements CSProcess {
       @Override
       public Wireform createWireform(HashMap<String, Object> params, String name, TransformChain transformChain) {
         params = (params != null ? params : new HashMap<String, Object>());
-        Wireform wireform = new Wireform(false, params, name, transformChain);
-        wireform.terminals.add(new PlainInputTerminal("println", new TransformChain(null, transformChain), new IntOrEventualClass(String.class)));
+        Wireform wireform = new Wireform(name, transformChain);
+        wireform.terminals.add(new PlainInputTerminal("in", new TransformChain(null, transformChain), new IntOrEventualClass(Object.class)));
+        wireform.terminals.add(new PlainOutputTerminal("out", new TransformChain(null, transformChain), new IntOrEventualClass(String.class)));
         return wireform;
       }
 
@@ -67,27 +67,35 @@ public class StderrBlock implements CSProcess {
       }
     }
 
-    private HashMap<String, Object> params; //TODO Move this and getter into superclass?
+    private HashMap<String, Object> params = new HashMap<>();
 
-    public Wireform(boolean isArchetype, HashMap<String, Object> params, String name, TransformChain transformChain) {
+    public Wireform(String name, TransformChain transformChain) {
       super(name, transformChain);
-      this.params = params;
     }
 
     @Override
     public void compile(File root) throws CompilationException {
       new Archetype().compile(root);
       //TODO Do
-      System.err.println("Implement (StderrBlock.Wireform).compile()");
+      System.err.println("Implement (ToStringBlock.Wireform).compile()");
     }
 
     @Override
     public CodeBlock getConstructor(Map<String, String> paramToChannelname, Map<Terminal, String> terminalToChannelname) {
-      String printlnInCname = terminalToChannelname.getOrDefault(getTerminals().stream().filter(t -> "println".equals(t.getName())).findFirst().orElse(null), ERROR_NAME);
+      String inCname = ERROR_NAME;
+      String outCname = ERROR_NAME;
+      for (Terminal t : getTerminals()) {
+        if (t instanceof PlainInputTerminal) {
+          inCname = terminalToChannelname.get(t);
+        } else {
+          outCname = terminalToChannelname.get(t);
+        }
+      }
       ArrayList<Object> formatArgs = new ArrayList<>();
       formatArgs.add(getRunformClass());
-      formatArgs.add(printlnInCname);
-      return CodeBlock.builder().add("new $T($L)", formatArgs.toArray()).build();
+      formatArgs.add(inCname);
+      formatArgs.add(outCname);
+      return CodeBlock.builder().add("new $T($L, $L)", formatArgs.toArray()).build();
     }
     
     @Override
@@ -102,17 +110,27 @@ public class StderrBlock implements CSProcess {
     }
   }
 
-  private final ChannelInput printlnIn;
+  private final ChannelInput in;
+  private final ChannelOutput out;
 
-  public StderrBlock(final ChannelInput printlnIn) {
-    this.printlnIn = printlnIn;
+  /**
+   * Construct a new SplitterBlockImpl process with the input Channel in and the
+   * output Channels out. The ordering of the Channels in the out array make no
+   * difference to the functionality of this process.
+   *
+   * @param in the input channel
+   * @param out the output Channels
+   */
+  public ToStringBlock(final ChannelInput in, final ChannelOutput out) {
+    this.in = in;
+    this.out = out;
   }
 
   @Override
   public void run() {
     while (true) {
-      String message = (String) printlnIn.read();
-      System.err.println(message);
+      Object data = in.read();
+      out.write(Objects.toString(data));
     }
   }
 }

@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.erhannis.connections.vjcsp.blocks;
+package com.erhannis.connections.vjcsp.blocks.io;
 
 import com.erhannis.connections.base.BlockArchetype;
 import com.erhannis.connections.base.BlockWireform;
@@ -50,7 +50,7 @@ public class UDPTransmitterBlock implements CSProcess {
       @Override
       public Wireform createWireform(HashMap<String, Object> params, String name, TransformChain transformChain) {
         params = (params != null ? params : new HashMap<String, Object>());
-        Wireform wireform = new Wireform(false, params, name, transformChain);
+        Wireform wireform = new Wireform(params, name, transformChain);
         //TODO I feel like this could be consolidated.
         if (!params.containsKey("hostname")) {
           wireform.terminals.add(new PlainInputTerminal("hostname", new TransformChain(null, transformChain), new IntOrEventualClass(String.class)));
@@ -80,7 +80,7 @@ public class UDPTransmitterBlock implements CSProcess {
 
     private HashMap<String, Object> params; //TODO Move this and getter into superclass?
 
-    public Wireform(boolean isArchetype, HashMap<String, Object> params, String name, TransformChain transformChain) {
+    public Wireform(HashMap<String, Object> params, String name, TransformChain transformChain) {
       super(name, transformChain);
       this.params = params;
     }
