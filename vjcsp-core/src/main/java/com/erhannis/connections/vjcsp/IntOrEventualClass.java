@@ -13,33 +13,31 @@ import java.util.Objects;
  * @author erhannis
  */
 public class IntOrEventualClass {
-
-  protected static enum Type {
-
+  protected static enum Mode {
     INT, CLASS, CLASS_STRING;
   }
 
-  protected final Type type;
+  protected final Mode mode;
   protected final Class clazz;
   protected final String clazzString;
   protected final Color color; //TODO Would ` = new Color(0xFF000000 | this.hashCode())` work, here?
 
   public IntOrEventualClass() {
-    this.type = Type.INT;
+    this.mode = Mode.INT;
     this.clazz = null;
     this.clazzString = null;
     this.color = new Color(0xFF000000 | this.hashCode(), true);
   }
 
   public IntOrEventualClass(Class clazz) {
-    this.type = Type.CLASS;
+    this.mode = Mode.CLASS;
     this.clazz = clazz;
     this.clazzString = null;
     this.color = new Color(0xFF000000 | this.hashCode(), true);
   }
 
   public IntOrEventualClass(String clazzString) {
-    this.type = Type.CLASS_STRING;
+    this.mode = Mode.CLASS_STRING;
     this.clazz = null;
     this.clazzString = clazzString;
     this.color = new Color(0xFF000000 | this.hashCode(), true);
@@ -53,15 +51,15 @@ public class IntOrEventualClass {
     IntOrEventualClass o = (IntOrEventualClass) obj;
     boolean result = true;
     //NOTE This could become inaccurate, if something else changed, as some of these shouldn't matter (but currently end up the same regardless)
-    result &= Objects.equals(this.type, o.type);
+    result &= Objects.equals(this.mode, o.mode);
     result &= Objects.equals(this.clazz, o.clazz);
     result &= Objects.equals(this.clazzString, o.clazzString);
     return result;
   }
-  
+
   @Override
   public int hashCode() {
-    return Objects.hash(type, clazz, clazzString);
+    return Objects.hash(mode, clazz, clazzString);
   }
 
   //TODO This is kindof related to Drawable, rather than an inherent part of the class....
@@ -97,9 +95,9 @@ public class IntOrEventualClass {
    */
   public static double compare(IntOrEventualClass a, IntOrEventualClass b) {
     // My, what a...lovely switch statement.
-    switch (a.type) {
+    switch (a.mode) {
       case INT:
-        switch (b.type) {
+        switch (b.mode) {
           case INT:
             return 0;
           case CLASS:
@@ -109,10 +107,10 @@ public class IntOrEventualClass {
             //TODO Technically it might be possible for b to be int.class, but I think even then it counts as different...maybe.
             return Double.NaN;
           default:
-            throw new RuntimeException("Unhandled type: " + b.type);
+            throw new RuntimeException("Unhandled type: " + b.mode);
         }
       case CLASS:
-        switch (b.type) {
+        switch (b.mode) {
           case INT:
             //TODO Technically it might be possible for a to be int.class, but I think even then it counts as different...maybe.
             return Double.NaN;
@@ -130,10 +128,10 @@ public class IntOrEventualClass {
             //TODO Implement
             throw new RuntimeException("CLASS_STRING not yet implemented");
           default:
-            throw new RuntimeException("Unhandled type: " + b.type);
+            throw new RuntimeException("Unhandled type: " + b.mode);
         }
       case CLASS_STRING:
-        switch (b.type) {
+        switch (b.mode) {
           case INT:
             //TODO Technically it might be possible for a to be int.class, but I think even then it counts as different...maybe.
             return Double.NaN;
@@ -148,25 +146,26 @@ public class IntOrEventualClass {
               throw new RuntimeException("CLASS_STRING not yet implemented");
             }
           default:
-            throw new RuntimeException("Unhandled type: " + b.type);
+            throw new RuntimeException("Unhandled type: " + b.mode);
         }
       default:
-        throw new RuntimeException("Unhandled type: " + a.type);
+        throw new RuntimeException("Unhandled type: " + a.mode);
     }
   }
 
   /**
    * Can type `b` be assignable to `this` type?
+   *
    * @param b
-   * @return 
+   * @return
    */
   public boolean isAssignableFrom(IntOrEventualClass b) {
     return IntOrEventualClass.compare(this, b) <= 0;
   }
-  
+
   @Override
   public String toString() {
-    switch (type) {
+    switch (mode) {
       case INT:
         return "[INT]"; //TODO Use different brackets?
       case CLASS:
@@ -174,7 +173,7 @@ public class IntOrEventualClass {
       case CLASS_STRING:
         return "[\"" + clazzString + "\"]";
       default:
-        throw new RuntimeException("Unhandled type: " + type);
+        throw new RuntimeException("Unhandled type: " + mode);
     }
   }
 }
